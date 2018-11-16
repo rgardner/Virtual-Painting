@@ -114,7 +114,12 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Resource Include="Images\overlay_countdown1.png" />
+    <Resource Include="Images\overlay_countdown2.png" />
+    <Resource Include="Images\overlay_countdown3.png" />
+    <Resource Include="Images\overlay_flash.png" />
+  </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\overlay_smile.png" />
   </ItemGroup>

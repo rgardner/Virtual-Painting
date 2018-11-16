@@ -54,6 +54,16 @@ namespace KinectDrawing
 
         private Rect bodyPresenceArea;
 
+        private static readonly IDictionary<State, BitmapImage> overlayImages = new Dictionary<State, BitmapImage>
+        {
+            [State.WaitingForPresence] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_smile.PNG")),
+            [State.ConfirmingPresence] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_smile.PNG")),
+            [State.Countdown3] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_countdown3.PNG")),
+            [State.Countdown2] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_countdown2.PNG")),
+            [State.Countdown1] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_countdown1.PNG")),
+            [State.Flash] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_flash.PNG"))
+        };
+
         public PhotoBooth()
         {
             InitializeComponent();
@@ -118,6 +128,7 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Waiting for presence...");
+                        this.overlay.Source = overlayImages[State.WaitingForPresence];
                     })
                 .Permit(Trigger.PersonEnters, State.ConfirmingPresence);
 
@@ -125,6 +136,7 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Confirming presence...");
+                        this.overlay.Source = overlayImages[State.ConfirmingPresence];
                         this.timer.Interval = new TimeSpan(0, 0, 2);
                         this.timer.Start();
                     })
@@ -135,6 +147,7 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("3...");
+                        this.overlay.Source = overlayImages[State.Countdown3];
                         this.timer.Interval = new TimeSpan(0, 0, 1);
                         this.timer.Start();
                     })
@@ -145,6 +158,7 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("2...");
+                        this.overlay.Source = overlayImages[State.Countdown2];
                         this.timer.Interval = new TimeSpan(0, 0, 1);
                         this.timer.Start();
                     })
@@ -155,6 +169,7 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("1...");
+                        this.overlay.Source = overlayImages[State.Countdown1];
                         this.timer.Interval = new TimeSpan(0, 0, 1);
                         this.timer.Start();
                     })
@@ -165,6 +180,7 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Flash!");
+                        this.overlay.Source = overlayImages[State.Flash];
                         this.timer.Interval = new TimeSpan(0, 0, 0, 0, 500);
                         this.timer.Start();
                     })

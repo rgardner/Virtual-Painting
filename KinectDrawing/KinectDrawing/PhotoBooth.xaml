@@ -20,6 +20,6 @@
                 </Canvas>
             </Grid>
         </Viewbox>
-        <Image Source="/Images/overlay_smile.png" />
+        <Image Name="overlay" Source="/Images/overlay_smile.png" />
     </Grid>
 </UserControl>
