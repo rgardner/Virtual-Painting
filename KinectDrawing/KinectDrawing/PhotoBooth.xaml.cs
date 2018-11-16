@@ -99,9 +99,6 @@ namespace KinectDrawing
 
                             if (!float.IsInfinity(x) && ! float.IsInfinity(y))
                             {
-                                // DRAW!
-                                trail.Points.Add(new Point { X = x, Y = y });
-
                                 Canvas.SetLeft(brush, x - brush.Width / 2.0);
                                 Canvas.SetTop(brush, y - brush.Height);
                             }
