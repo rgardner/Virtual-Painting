@@ -5,9 +5,10 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:KinectDrawing"
         mc:Ignorable="d"
-        Title="KINECT Drawing" Height="350" Width="525"
+        Title="Virtual Painting" Height="350" Width="525"
+        WindowStyle="None"
         WindowState="Maximized"
-        Background="Black">
+        Background="#2760A3">
 
     <Viewbox>
         <local:PhotoBooth />
