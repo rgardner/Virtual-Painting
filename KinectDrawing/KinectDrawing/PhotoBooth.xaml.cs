@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,7 +19,7 @@ namespace KinectDrawing
     /// <summary>
     /// Interaction logic for PhotoBooth.xaml
     /// </summary>
-    public partial class PhotoBooth : UserControl
+    public partial class PhotoBooth : UserControl, INotifyPropertyChanged
     {
         private enum Trigger
         {
@@ -34,8 +36,38 @@ namespace KinectDrawing
             Countdown2,
             Countdown1,
             Flash,
-            Done,
+            Painting,
+            SavingImage,
         };
+
+        private class BrushColorCycler
+        {
+            private static readonly SolidColorBrush[] brushes = new SolidColorBrush[]
+            {
+                new SolidColorBrush(Color.FromRgb(39, 96, 163)),
+                new SolidColorBrush(Color.FromRgb(242, 108, 96)),
+                new SolidColorBrush(Color.FromRgb(153, 86, 152)),
+                new SolidColorBrush(Color.FromRgb(0, 90, 100)),
+                new SolidColorBrush(Color.FromRgb(236, 0, 140)),
+                new SolidColorBrush(Color.FromRgb(129, 203, 235)),
+                new SolidColorBrush(Color.FromRgb(223, 130, 182)),
+            };
+
+            private int currentBrushIndex = 0;
+
+            public SolidColorBrush CurrentBrush => brushes[this.currentBrushIndex];
+
+            public SolidColorBrush Next()
+            {
+                this.currentBrushIndex++;
+                if (this.currentBrushIndex == brushes.Length)
+                {
+                    this.currentBrushIndex = 0;
+                }
+
+                return this.CurrentBrush;
+            }
+        }
 
         private readonly StateMachine<State, Trigger> stateMachine;
         private State currentState = State.WaitingForPresence;
@@ -54,6 +86,8 @@ namespace KinectDrawing
 
         private Rect bodyPresenceArea;
 
+        private BrushColorCycler brushColorCycler = new BrushColorCycler();
+        private Brush currentBrushStroke;
         private static readonly IDictionary<State, BitmapImage> overlayImages = new Dictionary<State, BitmapImage>
         {
             [State.WaitingForPresence] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_smile.PNG")),
@@ -61,7 +95,9 @@ namespace KinectDrawing
             [State.Countdown3] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_countdown3.PNG")),
             [State.Countdown2] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_countdown2.PNG")),
             [State.Countdown1] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_countdown1.PNG")),
-            [State.Flash] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_flash.PNG"))
+            [State.Flash] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_flash.PNG")),
+            [State.Painting] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_paint.PNG")),
+            [State.SavingImage] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_saved.PNG"))
         };
 
         public PhotoBooth()
@@ -114,10 +150,35 @@ namespace KinectDrawing
                 {
                     DrawRect(this.bodyPresenceArea, this.hitTestingFrame);
                 }
+
+                this.currentBrushStroke = this.brushColorCycler.CurrentBrush;
+            }
+
+            this.DataContext = this;
+        }
+
+        public Brush BrushStroke
+        {
+            get => this.currentBrushStroke;
+
+            private set
+            {
+                if (value != this.currentBrushStroke)
+                {
+                    this.currentBrushStroke = value;
+                    NotifyPropertyChanged();
+                }
             }
         }
 
-        void ConfigureStateMachine()
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void ConfigureStateMachine()
         {
             this.stateMachine.OnTransitioned(t =>
                 {
@@ -184,18 +245,36 @@ namespace KinectDrawing
                         this.timer.Interval = new TimeSpan(0, 0, 1);
                         this.timer.Start();
                     })
-                .Permit(Trigger.TimerTick, State.Done)
+                .Permit(Trigger.TimerTick, State.Painting)
                 .Ignore(Trigger.PersonLeaves);
 
-            this.stateMachine.Configure(State.Done)
+            this.stateMachine.Configure(State.Painting)
                 .OnEntry(t =>
                     {
-                        Debug.WriteLine("Navigating to painting page...");
-                        var mainWindow = (MainWindow)Window.GetWindow(this);
-                        mainWindow.currentPage.Children.Clear();
-                        mainWindow.currentPage.Children.Add(new VirtualPainting(this.bitmap));
+                        Debug.WriteLine("Painting...");
+                        this.overlay.Source = overlayImages[State.Painting];
+                        this.timer.Interval = new TimeSpan(0, 0, 15);
+                        this.timer.Start();
                     })
-                .Ignore(Trigger.PersonLeaves);
+                .Permit(Trigger.TimerTick, State.SavingImage)
+                .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
+
+            this.stateMachine.Configure(State.SavingImage)
+                .OnEntry(t =>
+                    {
+                        Debug.WriteLine("Saving image...");
+                        this.overlay.Source = overlayImages[State.SavingImage];
+
+                        // TODO: save image to a file
+
+                        this.trail.Points.Clear();
+                        this.BrushStroke = this.brushColorCycler.Next();
+
+                        this.timer.Interval = new TimeSpan(0, 0, 3);
+                        this.timer.Start();
+                    })
+                .Permit(Trigger.TimerTick, State.Painting)
+                .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
         }
 
         private void ColorReader_FrameArrived(object sender, ColorFrameArrivedEventArgs e)
@@ -258,6 +337,11 @@ namespace KinectDrawing
 
                 if (!float.IsInfinity(x) && ! float.IsInfinity(y))
                 {
+                    if (this.currentState == State.Painting)
+                    {
+                        this.trail.Points.Add(new Point { X = x, Y = y });
+                    }
+
                     Canvas.SetLeft(this.brush, x - this.brush.Width / 2.0);
                     Canvas.SetTop(this.brush, y - this.brush.Height);
                 }

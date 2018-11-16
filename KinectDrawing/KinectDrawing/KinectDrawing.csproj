@@ -58,9 +58,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="VirtualPainting.xaml.cs">
-      <DependentUpon>VirtualPainting.xaml</DependentUpon>
-    </Compile>
     <Page Include="DrawingBrush.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -82,10 +79,6 @@
       <SubType>Code</SubType>
     </Compile>
     <Page Include="PhotoBooth.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="VirtualPainting.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

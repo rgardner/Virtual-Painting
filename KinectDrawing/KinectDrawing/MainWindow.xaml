@@ -6,14 +6,11 @@
         xmlns:local="clr-namespace:KinectDrawing"
         mc:Ignorable="d"
         Title="Virtual Painting" Height="350" Width="525"
+        WindowStyle="None"
         WindowState="Maximized"
         Background="#2760A3">
 
-    <!--WindowStyle="None"-->
-
     <Grid>
-        <Grid Name="currentPage">
-            <local:PhotoBooth />
-        </Grid>
+        <local:PhotoBooth />
     </Grid>
 </Window>
