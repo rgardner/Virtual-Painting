@@ -11,6 +11,6 @@
         Background="#2760A3">
 
     <Grid>
-        <local:PhotoBooth />
+        <local:VirtualPainting />
     </Grid>
 </Window>

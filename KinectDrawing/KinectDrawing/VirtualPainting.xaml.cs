@@ -17,9 +17,9 @@ using Stateless;
 namespace KinectDrawing
 {
     /// <summary>
-    /// Interaction logic for PhotoBooth.xaml
+    /// Interaction logic for VirtualPainting.xaml
     /// </summary>
-    public partial class PhotoBooth : UserControl, INotifyPropertyChanged
+    public partial class VirtualPainting : UserControl, INotifyPropertyChanged
     {
         private enum Trigger
         {
@@ -100,7 +100,7 @@ namespace KinectDrawing
             [State.SavingImage] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_saved.PNG"))
         };
 
-        public PhotoBooth()
+        public VirtualPainting()
         {
             InitializeComponent();
 
