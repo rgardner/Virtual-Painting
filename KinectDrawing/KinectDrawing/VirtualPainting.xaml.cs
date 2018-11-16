@@ -128,8 +128,7 @@ namespace KinectDrawing
                 this.width = sensor.ColorFrameSource.FrameDescription.Width;
                 this.height = sensor.ColorFrameSource.FrameDescription.Height;
 
-                this.colorReader = sensor.ColorFrameSource.OpenReader();
-                this.colorReader.FrameArrived += ColorReader_FrameArrived;
+                StartColorReader();
 
                 this.bodyReader = sensor.BodyFrameSource.OpenReader();
                 this.bodyReader.FrameArrived += BodyReader_FrameArrived;
@@ -190,6 +189,12 @@ namespace KinectDrawing
                     {
                         Debug.WriteLine("Waiting for presence...");
                         this.overlay.Source = overlayImages[State.WaitingForPresence];
+
+                        if ((t.Source == State.Painting) || (t.Source == State.SavingImage))
+                        {
+                            this.trail.Points.Clear();
+                            StartColorReader();
+                        }
                     })
                 .Permit(Trigger.PersonEnters, State.ConfirmingPresence);
 
@@ -242,6 +247,9 @@ namespace KinectDrawing
                     {
                         Debug.WriteLine("Flash!");
                         this.overlay.Source = overlayImages[State.Flash];
+
+                        StopColorReader();
+
                         this.timer.Interval = new TimeSpan(0, 0, 1);
                         this.timer.Start();
                     })
@@ -275,6 +283,17 @@ namespace KinectDrawing
                     })
                 .Permit(Trigger.TimerTick, State.Painting)
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
+        }
+
+        private void StartColorReader()
+        {
+            this.colorReader = sensor.ColorFrameSource.OpenReader();
+            this.colorReader.FrameArrived += ColorReader_FrameArrived;
+        }
+
+        private void StopColorReader()
+        {
+            this.colorReader?.Dispose();
         }
 
         private void ColorReader_FrameArrived(object sender, ColorFrameArrivedEventArgs e)
