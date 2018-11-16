@@ -12,6 +12,8 @@
     <!--WindowStyle="None"-->
 
     <Grid>
-        <local:PhotoBooth />
+        <Grid Name="currentPage">
+            <local:PhotoBooth />
+        </Grid>
     </Grid>
 </Window>

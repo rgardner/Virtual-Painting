@@ -181,7 +181,7 @@ namespace KinectDrawing
                     {
                         Debug.WriteLine("Flash!");
                         this.overlay.Source = overlayImages[State.Flash];
-                        this.timer.Interval = new TimeSpan(0, 0, 0, 0, 500);
+                        this.timer.Interval = new TimeSpan(0, 0, 1);
                         this.timer.Start();
                     })
                 .Permit(Trigger.TimerTick, State.Done)
@@ -190,7 +190,10 @@ namespace KinectDrawing
             this.stateMachine.Configure(State.Done)
                 .OnEntry(t =>
                     {
-                        Debug.WriteLine("Navigating to next page!");
+                        Debug.WriteLine("Navigating to painting page...");
+                        var mainWindow = (MainWindow)Window.GetWindow(this);
+                        mainWindow.currentPage.Children.Clear();
+                        mainWindow.currentPage.Children.Add(new VirtualPainting(this.bitmap));
                     })
                 .Ignore(Trigger.PersonLeaves);
         }
