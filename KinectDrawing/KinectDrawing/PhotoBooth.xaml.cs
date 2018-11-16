@@ -8,7 +8,9 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using Microsoft.Kinect;
+using Stateless;
 
 namespace KinectDrawing
 {
@@ -17,6 +19,29 @@ namespace KinectDrawing
     /// </summary>
     public partial class PhotoBooth : UserControl
     {
+        private enum Trigger
+        {
+            PersonEnters,
+            PersonLeaves,
+            TimerTick,
+        };
+
+        private enum State
+        {
+            WaitingForPresence,
+            ConfirmingPresence,
+            Countdown3,
+            Countdown2,
+            Countdown1,
+            Flash,
+            Done,
+        };
+
+        private readonly StateMachine<State, Trigger> stateMachine;
+        private State currentState = State.WaitingForPresence;
+
+        private readonly DispatcherTimer timer = new DispatcherTimer();
+
         private KinectSensor sensor = null;
         private ColorFrameReader colorReader = null;
         private BodyFrameReader bodyReader = null;
@@ -29,25 +54,6 @@ namespace KinectDrawing
 
         private Rect bodyPresenceArea;
 
-        private StateMachine stateMachine = new StateMachine();
-
-        class StateMachine
-        {
-            public enum State
-            {
-                Waiting,
-                BodyIsInFrame,
-                CountingDown,
-            }
-
-            private State currentState = State.Waiting;
-
-            public void SetState(State state)
-            {
-                this.currentState = state;
-            }
-        }
-
         public PhotoBooth()
         {
             InitializeComponent();
@@ -58,6 +64,14 @@ namespace KinectDrawing
                     bodyReader?.Dispose();
                     sensor?.Close();
                 };
+
+            this.timer.Tick += (s, e) =>
+                {
+                    this.stateMachine.Fire(Trigger.TimerTick);
+                };
+
+            this.stateMachine = new StateMachine<State, Trigger>(() => this.currentState, s => this.currentState = s);
+            ConfigureStateMachine();
 
             this.sensor = KinectSensor.GetDefault();
 
@@ -93,6 +107,78 @@ namespace KinectDrawing
             }
         }
 
+        void ConfigureStateMachine()
+        {
+            this.stateMachine.OnTransitioned(t =>
+                {
+                    this.timer.Stop();
+                });
+
+            this.stateMachine.Configure(State.WaitingForPresence)
+                .OnEntry(t =>
+                    {
+                        Debug.WriteLine("Waiting for presence...");
+                    })
+                .Permit(Trigger.PersonEnters, State.ConfirmingPresence);
+
+            this.stateMachine.Configure(State.ConfirmingPresence)
+                .OnEntry(t =>
+                    {
+                        Debug.WriteLine("Confirming presence...");
+                        this.timer.Interval = new TimeSpan(0, 0, 2);
+                        this.timer.Start();
+                    })
+                .Permit(Trigger.TimerTick, State.Countdown3)
+                .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
+
+            this.stateMachine.Configure(State.Countdown3)
+                .OnEntry(t =>
+                    {
+                        Debug.WriteLine("3...");
+                        this.timer.Interval = new TimeSpan(0, 0, 1);
+                        this.timer.Start();
+                    })
+                .Permit(Trigger.TimerTick, State.Countdown2)
+                .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
+
+            this.stateMachine.Configure(State.Countdown2)
+                .OnEntry(t =>
+                    {
+                        Debug.WriteLine("2...");
+                        this.timer.Interval = new TimeSpan(0, 0, 1);
+                        this.timer.Start();
+                    })
+                .Permit(Trigger.TimerTick, State.Countdown1)
+                .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
+
+            this.stateMachine.Configure(State.Countdown1)
+                .OnEntry(t =>
+                    {
+                        Debug.WriteLine("1...");
+                        this.timer.Interval = new TimeSpan(0, 0, 1);
+                        this.timer.Start();
+                    })
+                .Permit(Trigger.TimerTick, State.Flash)
+                .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
+
+            this.stateMachine.Configure(State.Flash)
+                .OnEntry(t =>
+                    {
+                        Debug.WriteLine("Flash!");
+                        this.timer.Interval = new TimeSpan(0, 0, 0, 0, 500);
+                        this.timer.Start();
+                    })
+                .Permit(Trigger.TimerTick, State.Done)
+                .Ignore(Trigger.PersonLeaves);
+
+            this.stateMachine.Configure(State.Done)
+                .OnEntry(t =>
+                    {
+                        Debug.WriteLine("Navigating to next page!");
+                    })
+                .Ignore(Trigger.PersonLeaves);
+        }
+
         private void ColorReader_FrameArrived(object sender, ColorFrameArrivedEventArgs e)
         {
             using (var frame = e.FrameReference.AcquireFrame())
@@ -124,14 +210,17 @@ namespace KinectDrawing
                         Joint handRight = body.Joints[JointType.HandRight];
                         DrawCursorIfNeeded(handRight);
 
-                        if (!BodyIsInFrame(body))
+                        bool bodyIsInFrame = BodyIsInFrame(body);
+                        if (this.currentState == State.WaitingForPresence)
                         {
-                            Debug.WriteLine("Body is not in frame!");
-                            this.stateMachine.SetState(StateMachine.State.Waiting);
+                            if (bodyIsInFrame)
+                            {
+                                this.stateMachine.Fire(Trigger.PersonEnters);
+                            }
                         }
-                        else
+                        else if (!bodyIsInFrame)
                         {
-                            Debug.WriteLine("Body is in frame!");
+                            this.stateMachine.Fire(Trigger.PersonLeaves);
                         }
                     }
                 }
