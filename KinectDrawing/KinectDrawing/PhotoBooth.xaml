@@ -8,10 +8,18 @@
              d:DesignHeight="450" d:DesignWidth="800">
 
     <Grid>
-        <Image Name="camera" />
-        <Canvas Name="canvas">
-            <local:DrawingBrush x:Name="brush" Width="300" Height="300" />
-        </Canvas>
+        <Viewbox>
+            <Grid>
+                <Image Name="camera" />
+                <Canvas Name="canvas">
+                    <local:DrawingBrush x:Name="brush" Width="300" Height="300" />
+                </Canvas>
+                <Canvas Name="hitTestingCanvas">
+                    <StackPanel Name="hitTestingFrame" />
+                    <StackPanel Name="hitTestingBody" />
+                </Canvas>
+            </Grid>
+        </Viewbox>
         <Image Source="/Images/overlay_smile.png" />
     </Grid>
 </UserControl>

@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 using Microsoft.Kinect;
 
 namespace KinectDrawing
@@ -24,6 +27,27 @@ namespace KinectDrawing
         private byte[] pixels = null;
         private WriteableBitmap bitmap = null;
 
+        private Rect bodyPresenceArea;
+
+        private StateMachine stateMachine = new StateMachine();
+
+        class StateMachine
+        {
+            public enum State
+            {
+                Waiting,
+                BodyIsInFrame,
+                CountingDown,
+            }
+
+            private State currentState = State.Waiting;
+
+            public void SetState(State state)
+            {
+                this.currentState = state;
+            }
+        }
+
         public PhotoBooth()
         {
             InitializeComponent();
@@ -35,27 +59,37 @@ namespace KinectDrawing
                     sensor?.Close();
                 };
 
-            sensor = KinectSensor.GetDefault();
+            this.sensor = KinectSensor.GetDefault();
 
             if (sensor != null)
             {
-                sensor.Open();
+                this.sensor.Open();
 
-                width = sensor.ColorFrameSource.FrameDescription.Width;
-                height = sensor.ColorFrameSource.FrameDescription.Height;
+                this.width = sensor.ColorFrameSource.FrameDescription.Width;
+                this.height = sensor.ColorFrameSource.FrameDescription.Height;
 
-                colorReader = sensor.ColorFrameSource.OpenReader();
-                colorReader.FrameArrived += ColorReader_FrameArrived;
+                this.colorReader = sensor.ColorFrameSource.OpenReader();
+                this.colorReader.FrameArrived += ColorReader_FrameArrived;
 
-                bodyReader = sensor.BodyFrameSource.OpenReader();
-                bodyReader.FrameArrived += BodyReader_FrameArrived;
+                this.bodyReader = sensor.BodyFrameSource.OpenReader();
+                this.bodyReader.FrameArrived += BodyReader_FrameArrived;
 
-                pixels = new byte[width * height * 4];
-                bitmap = new WriteableBitmap(width, height, 96.0, 96.0, PixelFormats.Bgra32, null);
+                this.pixels = new byte[width * height * 4];
+                this.bitmap = new WriteableBitmap(width, height, 96.0, 96.0, PixelFormats.Bgra32, null);
 
-                bodies = new Body[sensor.BodyFrameSource.BodyCount];
+                this.bodies = new Body[sensor.BodyFrameSource.BodyCount];
 
-                camera.Source = bitmap;
+                this.camera.Source = bitmap;
+
+                double frameX1 = ConfigurationConstants.BodyPresenceAreaLeftWidthRatio * this.width;
+                double frameY1 = ConfigurationConstants.BodyPresenceAreaTopHeightRatio * this.height;
+                double frameX2 = ConfigurationConstants.BodyPresenceAreaRightWidthRatio * this.width;
+                double frameY2 = ConfigurationConstants.BodyPresenceAreaBottomHeightRatio * this.height;
+                this.bodyPresenceArea = new Rect(frameX1, frameY1, frameX2 - frameX1, frameY2 - frameY1);
+                if (ConfigurationConstants.ShouldDisplayBodyPresenceAreas)
+                {
+                    DrawRect(this.bodyPresenceArea, this.hitTestingFrame);
+                }
             }
         }
 
@@ -67,10 +101,10 @@ namespace KinectDrawing
                 {
                     frame.CopyConvertedFrameDataToArray(pixels, ColorImageFormat.Bgra);
 
-                    bitmap.Lock();
-                    Marshal.Copy(pixels, 0, bitmap.BackBuffer, pixels.Length);
-                    bitmap.AddDirtyRect(new Int32Rect(0, 0, width, height));
-                    bitmap.Unlock();
+                    this.bitmap.Lock();
+                    Marshal.Copy(pixels, 0, this.bitmap.BackBuffer, this.pixels.Length);
+                    this.bitmap.AddDirtyRect(new Int32Rect(0, 0, this.width, this.height));
+                    this.bitmap.Unlock();
                 }
             }
         }
@@ -83,29 +117,103 @@ namespace KinectDrawing
                 {
                     frame.GetAndRefreshBodyData(bodies);
 
-                    Body body = bodies.Where(b => b.IsTracked).FirstOrDefault();
+                    Body body = this.bodies.Where(b => b.IsTracked).FirstOrDefault();
 
                     if (body != null)
                     {
                         Joint handRight = body.Joints[JointType.HandRight];
+                        DrawCursorIfNeeded(handRight);
 
-                        if (handRight.TrackingState != TrackingState.NotTracked)
+                        if (!BodyIsInFrame(body))
                         {
-                            CameraSpacePoint handRightPosition = handRight.Position;
-                            ColorSpacePoint handRightPoint = sensor.CoordinateMapper.MapCameraPointToColorSpace(handRightPosition);
-
-                            float x = handRightPoint.X;
-                            float y = handRightPoint.Y;
-
-                            if (!float.IsInfinity(x) && ! float.IsInfinity(y))
-                            {
-                                Canvas.SetLeft(brush, x - brush.Width / 2.0);
-                                Canvas.SetTop(brush, y - brush.Height);
-                            }
+                            Debug.WriteLine("Body is not in frame!");
+                            this.stateMachine.SetState(StateMachine.State.Waiting);
+                        }
+                        else
+                        {
+                            Debug.WriteLine("Body is in frame!");
                         }
                     }
                 }
             }
+        }
+
+        private void DrawCursorIfNeeded(Joint hand)
+        {
+            if (hand.TrackingState != TrackingState.NotTracked)
+            {
+                CameraSpacePoint handPosition = hand.Position;
+                ColorSpacePoint handPoint = this.sensor.CoordinateMapper.MapCameraPointToColorSpace(handPosition);
+
+                float x = handPoint.X;
+                float y = handPoint.Y;
+
+                if (!float.IsInfinity(x) && ! float.IsInfinity(y))
+                {
+                    Canvas.SetLeft(this.brush, x - this.brush.Width / 2.0);
+                    Canvas.SetTop(this.brush, y - this.brush.Height);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns true if both shoulders are in the frame.
+        /// </summary>
+        /// <param name="body"></param>
+        /// <returns></returns>
+        private bool BodyIsInFrame(Body body)
+        {
+            Joint shoulderLeft = body.Joints[JointType.ShoulderLeft];
+            Joint shoulderRight = body.Joints[JointType.ShoulderRight];
+
+            if ((shoulderLeft.TrackingState == TrackingState.NotTracked) || (shoulderRight.TrackingState == TrackingState.NotTracked))
+            {
+                return false;
+            }
+
+            ColorSpacePoint shoulderLeftPoint = this.sensor.CoordinateMapper.MapCameraPointToColorSpace(shoulderLeft.Position);
+            ColorSpacePoint shoulderRightPoint = this.sensor.CoordinateMapper.MapCameraPointToColorSpace(shoulderRight.Position);
+
+            float bodyX1 = shoulderLeftPoint.X;
+            float bodyY1 = shoulderLeftPoint.Y;
+            float bodyX2 = shoulderRightPoint.X;
+            float bodyY2 = shoulderRightPoint.Y;
+            if (float.IsInfinity(bodyX1) || float.IsInfinity(bodyY1) || float.IsInfinity(bodyX2) || float.IsInfinity(bodyY2))
+            {
+                return false;
+            }
+
+            var bodyRect = new Rect(bodyX1, bodyY1, Math.Abs(bodyX2 - bodyX1), Math.Abs(bodyY2 - bodyY1));
+
+            if (ConfigurationConstants.ShouldDisplayBodyPresenceAreas)
+            {
+                DrawRect(bodyRect, this.hitTestingBody);
+            }
+
+            return bodyRect.IntersectsWith(this.bodyPresenceArea);
+        }
+
+        private void DrawRect(Rect rect, StackPanel stackPanel)
+        {
+            stackPanel.Children.Clear();
+
+            var sp = new StackPanel()
+            {
+                Margin = new Thickness(-5, -5, 0, 0),
+                Orientation = Orientation.Horizontal
+            };
+            sp.Children.Add(new Rectangle()
+            {
+                HorizontalAlignment = HorizontalAlignment.Left,
+                Height = rect.Height,
+                Width = rect.Width,
+                Margin = new Thickness(20),
+                Stroke = Brushes.Yellow,
+            });
+            stackPanel.Children.Add(sp);
+
+            Canvas.SetLeft(stackPanel, rect.Left);
+            Canvas.SetTop(stackPanel, rect.Top);
         }
     }
 }

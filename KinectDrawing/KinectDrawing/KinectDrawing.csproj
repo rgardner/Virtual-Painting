@@ -67,6 +67,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ConfigurationConstants.cs" />
     <Compile Include="DrawingBrush.xaml.cs">
       <DependentUpon>DrawingBrush.xaml</DependentUpon>
     </Compile>
