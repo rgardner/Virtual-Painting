@@ -14,15 +14,15 @@ namespace KinectDrawing
     /// </summary>
     public partial class PhotoBooth : UserControl
     {
-        private KinectSensor _sensor = null;
-        private ColorFrameReader _colorReader = null;
-        private BodyFrameReader _bodyReader = null;
-        private IList<Body> _bodies = null;
+        private KinectSensor sensor = null;
+        private ColorFrameReader colorReader = null;
+        private BodyFrameReader bodyReader = null;
+        private IList<Body> bodies = null;
 
-        private int _width = 0;
-        private int _height = 0;
-        private byte[] _pixels = null;
-        private WriteableBitmap _bitmap = null;
+        private int width = 0;
+        private int height = 0;
+        private byte[] pixels = null;
+        private WriteableBitmap bitmap = null;
 
         public PhotoBooth()
         {
@@ -30,32 +30,32 @@ namespace KinectDrawing
 
             Unloaded += (s, e) =>
                 {
-                    _colorReader?.Dispose();
-                    _bodyReader?.Dispose();
-                    _sensor?.Close();
+                    colorReader?.Dispose();
+                    bodyReader?.Dispose();
+                    sensor?.Close();
                 };
 
-            _sensor = KinectSensor.GetDefault();
+            sensor = KinectSensor.GetDefault();
 
-            if (_sensor != null)
+            if (sensor != null)
             {
-                _sensor.Open();
+                sensor.Open();
 
-                _width = _sensor.ColorFrameSource.FrameDescription.Width;
-                _height = _sensor.ColorFrameSource.FrameDescription.Height;
+                width = sensor.ColorFrameSource.FrameDescription.Width;
+                height = sensor.ColorFrameSource.FrameDescription.Height;
 
-                _colorReader = _sensor.ColorFrameSource.OpenReader();
-                _colorReader.FrameArrived += ColorReader_FrameArrived;
+                colorReader = sensor.ColorFrameSource.OpenReader();
+                colorReader.FrameArrived += ColorReader_FrameArrived;
 
-                _bodyReader = _sensor.BodyFrameSource.OpenReader();
-                _bodyReader.FrameArrived += BodyReader_FrameArrived;
+                bodyReader = sensor.BodyFrameSource.OpenReader();
+                bodyReader.FrameArrived += BodyReader_FrameArrived;
 
-                _pixels = new byte[_width * _height * 4];
-                _bitmap = new WriteableBitmap(_width, _height, 96.0, 96.0, PixelFormats.Bgra32, null);
+                pixels = new byte[width * height * 4];
+                bitmap = new WriteableBitmap(width, height, 96.0, 96.0, PixelFormats.Bgra32, null);
 
-                _bodies = new Body[_sensor.BodyFrameSource.BodyCount];
+                bodies = new Body[sensor.BodyFrameSource.BodyCount];
 
-                camera.Source = _bitmap;
+                camera.Source = bitmap;
             }
         }
 
@@ -65,12 +65,12 @@ namespace KinectDrawing
             {
                 if (frame != null)
                 {
-                    frame.CopyConvertedFrameDataToArray(_pixels, ColorImageFormat.Bgra);
+                    frame.CopyConvertedFrameDataToArray(pixels, ColorImageFormat.Bgra);
 
-                    _bitmap.Lock();
-                    Marshal.Copy(_pixels, 0, _bitmap.BackBuffer, _pixels.Length);
-                    _bitmap.AddDirtyRect(new Int32Rect(0, 0, _width, _height));
-                    _bitmap.Unlock();
+                    bitmap.Lock();
+                    Marshal.Copy(pixels, 0, bitmap.BackBuffer, pixels.Length);
+                    bitmap.AddDirtyRect(new Int32Rect(0, 0, width, height));
+                    bitmap.Unlock();
                 }
             }
         }
@@ -81,9 +81,9 @@ namespace KinectDrawing
             {
                 if (frame != null)
                 {
-                    frame.GetAndRefreshBodyData(_bodies);
+                    frame.GetAndRefreshBodyData(bodies);
 
-                    Body body = _bodies.Where(b => b.IsTracked).FirstOrDefault();
+                    Body body = bodies.Where(b => b.IsTracked).FirstOrDefault();
 
                     if (body != null)
                     {
@@ -92,7 +92,7 @@ namespace KinectDrawing
                         if (handRight.TrackingState != TrackingState.NotTracked)
                         {
                             CameraSpacePoint handRightPosition = handRight.Position;
-                            ColorSpacePoint handRightPoint = _sensor.CoordinateMapper.MapCameraPointToColorSpace(handRightPosition);
+                            ColorSpacePoint handRightPoint = sensor.CoordinateMapper.MapCameraPointToColorSpace(handRightPosition);
 
                             float x = handRightPoint.X;
                             float y = handRightPoint.Y;
