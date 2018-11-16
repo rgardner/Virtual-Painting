@@ -7,19 +7,9 @@
         mc:Ignorable="d"
         Title="KINECT Drawing" Height="350" Width="525"
         WindowState="Maximized"
-        Background="Black"
-        Closing="Window_Closing">
+        Background="Black">
+
     <Viewbox>
-        <Grid Width="1920" Height="1080">
-            <Image Name="camera" />
-            <Canvas Name="canvas">
-                <local:DrawingBrush x:Name="brush" Width="300" Height="300" />
-                <Polyline Name="trail" Stroke="Red" StrokeThickness="15">
-                    <Polyline.Effect>
-                        <BlurEffect Radius="20" />
-                    </Polyline.Effect>
-                </Polyline>
-            </Canvas>
-        </Grid>
+        <local:PhotoBooth />
     </Viewbox>
 </Window>
