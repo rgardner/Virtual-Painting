@@ -71,6 +71,21 @@ namespace KinectDrawing
             }
         }
 
+        private class HandFrameData
+        {
+            public float X { get; set; }
+            public float Y { get; set; }
+            public TrackingState TrackingState { get; set; }
+            public float CameraX { get; set; }
+            public float CameraY { get; set; }
+            public float CameraZ { get; set; }
+
+            public string ToCSV()
+            {
+                return $"{this.X},{this.Y},{this.TrackingState.ToString()},{this.CameraX},{this.CameraY},{this.CameraZ}";
+            }
+        }
+
         private readonly StateMachine<State, Trigger> stateMachine = new StateMachine<State, Trigger>(State.WaitingForPresence);
 
         private readonly DispatcherTimer timer = new DispatcherTimer();
@@ -101,6 +116,10 @@ namespace KinectDrawing
             [State.Painting] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_paint.PNG")),
             [State.SavingImage] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_saved.PNG"))
         };
+
+        private IList<HandFrameData> handFrameDataPoints = new List<HandFrameData>();
+        private BackgroundWorker handFrameBackgroundWorker = new BackgroundWorker();
+        private string currentTestRunDirectoryPath;
 
         public VirtualPainting()
         {
@@ -161,16 +180,49 @@ namespace KinectDrawing
                         {
                             pngEncoder.Save(ms);
 
-                            string fileDirectory = Environment.GetEnvironmentVariable(ConfigurationConstants.SavedImagesDirectoryPathEnvironmentVariableName)
-                                ?? Environment.CurrentDirectory;
                             string fileName = DateTime.UtcNow.ToString("yyyy-MM-ddTHH-mm-ss") + ".png";
-                            string fullPath = System.IO.Path.Combine(fileDirectory, fileName);
+                            string fullPath = System.IO.Path.Combine(this.currentTestRunDirectoryPath, fileName);
+                            Directory.CreateDirectory(this.currentTestRunDirectoryPath);
                             File.WriteAllBytes(fullPath, ms.ToArray());
+                        }
+                    };
+
+                this.handFrameBackgroundWorker.DoWork += (s, e) =>
+                    {
+                        var argument = (IList<object>)e.Argument;
+                        var handFrameDataPoints = (IList<HandFrameData>)argument[0];
+                        var camera = (RenderTargetBitmap)argument[1];
+
+                        string directoryPath = this.currentTestRunDirectoryPath;
+                        string fileName = "hand_frame_data.csv";
+                        string filePath = System.IO.Path.Combine(this.currentTestRunDirectoryPath, fileName);
+                        var handFrameDataPointStrings = from dataPoint in handFrameDataPoints
+                                                        select dataPoint.ToCSV();
+                        Directory.CreateDirectory(this.currentTestRunDirectoryPath);
+                        File.WriteAllLines(filePath, handFrameDataPointStrings);
+
+                        // Save image too
+                        BitmapEncoder pngEncoder = new PngBitmapEncoder();
+                        pngEncoder.Frames.Add(BitmapFrame.Create(camera));
+                        using (var ms = new MemoryStream())
+                        {
+                            pngEncoder.Save(ms);
+
+                            string cameraFilePath = "raw_camera.png";
+                            File.WriteAllBytes(System.IO.Path.Combine(this.currentTestRunDirectoryPath, cameraFilePath), ms.ToArray());
                         }
                     };
             }
 
             this.DataContext = this;
+        }
+
+        private string GetTestRunDirectoryPath()
+        {
+            string parentDirectoryPath = Environment.GetEnvironmentVariable(ConfigurationConstants.SavedImagesDirectoryPathEnvironmentVariableName)
+                ?? Environment.CurrentDirectory;
+            string directoryName = DateTime.UtcNow.ToString("yyyy-MM-ddTHH-mm-ss");
+            return System.IO.Path.Combine(parentDirectoryPath, directoryName);
         }
 
         public Brush BrushStroke
@@ -277,6 +329,7 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Painting...");
+                        this.currentTestRunDirectoryPath = GetTestRunDirectoryPath();
                         if (t.Source == State.SavingImage)
                         {
                             this.BrushStroke = this.brushColorCycler.Next();
@@ -394,6 +447,9 @@ namespace KinectDrawing
                 {
                     if (this.stateMachine.IsInState(State.Painting))
                     {
+                        this.handFrameDataPoints.Add(new HandFrameData {
+                            X = x, Y = y, TrackingState = hand.TrackingState,
+                            CameraX = handPosition.X, CameraY = handPosition.Y, CameraZ = handPosition.Z });
                         this.trail.Points.Add(new Point { X = x, Y = y });
                     }
 
@@ -474,6 +530,13 @@ namespace KinectDrawing
             // TODO: add saved image filter to RenderTargetBitmap
             rtb.Freeze(); // necessary for the backgroundWorker to access it
             this.backgroundWorker.RunWorkerAsync(rtb);
+
+            var handFrameDataPointsToSave = new List<HandFrameData>(this.handFrameDataPoints);
+            this.handFrameDataPoints.Clear();
+            var rtb2 = new RenderTargetBitmap(this.width, this.height, 96d, 96d, PixelFormats.Default);
+            rtb2.Render(this.camera);
+            rtb2.Freeze();
+            this.handFrameBackgroundWorker.RunWorkerAsync(new List<object> { handFrameDataPointsToSave, rtb2 });
         }
     }
 }
