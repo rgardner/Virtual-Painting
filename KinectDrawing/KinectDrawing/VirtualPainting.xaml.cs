@@ -37,6 +37,7 @@ namespace KinectDrawing
             Countdown1,
             Flash,
             Painting,
+            ConfirmingLeaving,
             SavingImage,
         };
 
@@ -190,7 +191,7 @@ namespace KinectDrawing
                         Debug.WriteLine("Waiting for presence...");
                         this.overlay.Source = overlayImages[State.WaitingForPresence];
 
-                        if ((t.Source == State.Painting) || (t.Source == State.SavingImage))
+                        if ((t.Source == State.ConfirmingLeaving) || (t.Source == State.SavingImage))
                         {
                             this.trail.Points.Clear();
                             StartColorReader();
@@ -260,26 +261,45 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Painting...");
+                        if (t.Source == State.SavingImage)
+                        {
+                            this.BrushStroke = this.brushColorCycler.Next();
+                        }
+
+                        this.trail.Points.Clear();
                         this.overlay.Source = overlayImages[State.Painting];
                         this.timer.Interval = new TimeSpan(0, 0, 15);
                         this.timer.Start();
                     })
                 .Permit(Trigger.TimerTick, State.SavingImage)
-                .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
+                .Permit(Trigger.PersonLeaves, State.ConfirmingLeaving);
+
+            this.stateMachine.Configure(State.ConfirmingLeaving)
+                .OnEntry(t =>
+                    {
+                        Debug.WriteLine("Confirming leaving...");
+                        this.timer.Interval = new TimeSpan(0, 0, 2);
+                        this.timer.Start();
+                    })
+                .Permit(Trigger.PersonEnters, State.Painting)
+                .Permit(Trigger.TimerTick, State.WaitingForPresence)
+                .Ignore(Trigger.PersonLeaves);
 
             this.stateMachine.Configure(State.SavingImage)
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Saving image...");
+                        this.brush.Visibility = Visibility.Collapsed;
                         this.overlay.Source = overlayImages[State.SavingImage];
 
                         // TODO: save image to a file
 
-                        this.trail.Points.Clear();
-                        this.BrushStroke = this.brushColorCycler.Next();
-
-                        this.timer.Interval = new TimeSpan(0, 0, 3);
+                        this.timer.Interval = new TimeSpan(0, 0, 6);
                         this.timer.Start();
+                    })
+                .OnExit(t =>
+                    {
+                        this.brush.Visibility = Visibility.Visible;
                     })
                 .Permit(Trigger.TimerTick, State.Painting)
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
@@ -328,7 +348,7 @@ namespace KinectDrawing
                         DrawCursorIfNeeded(handRight);
 
                         bool bodyIsInFrame = BodyIsInFrame(body);
-                        if (this.currentState == State.WaitingForPresence)
+                        if ((this.currentState == State.WaitingForPresence) || (this.currentState == State.ConfirmingLeaving))
                         {
                             if (bodyIsInFrame)
                             {
