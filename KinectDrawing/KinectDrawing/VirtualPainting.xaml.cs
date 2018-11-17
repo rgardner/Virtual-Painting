@@ -70,8 +70,7 @@ namespace KinectDrawing
             }
         }
 
-        private readonly StateMachine<State, Trigger> stateMachine;
-        private State currentState = State.WaitingForPresence;
+        private readonly StateMachine<State, Trigger> stateMachine = new StateMachine<State, Trigger>(State.WaitingForPresence);
 
         private readonly DispatcherTimer timer = new DispatcherTimer();
 
@@ -117,7 +116,6 @@ namespace KinectDrawing
                     this.stateMachine.Fire(Trigger.TimerTick);
                 };
 
-            this.stateMachine = new StateMachine<State, Trigger>(() => this.currentState, s => this.currentState = s);
             ConfigureStateMachine();
 
             this.sensor = KinectSensor.GetDefault();
@@ -348,7 +346,7 @@ namespace KinectDrawing
                         DrawCursorIfNeeded(handRight);
 
                         bool bodyIsInFrame = BodyIsInFrame(body);
-                        if ((this.currentState == State.WaitingForPresence) || (this.currentState == State.ConfirmingLeaving))
+                        if (this.stateMachine.IsInState(State.WaitingForPresence) || this.stateMachine.IsInState(State.ConfirmingLeaving))
                         {
                             if (bodyIsInFrame)
                             {
@@ -376,7 +374,7 @@ namespace KinectDrawing
 
                 if (!float.IsInfinity(x) && ! float.IsInfinity(y))
                 {
-                    if (this.currentState == State.Painting)
+                    if (this.stateMachine.IsInState(State.Painting))
                     {
                         this.trail.Points.Add(new Point { X = x, Y = y });
                     }
