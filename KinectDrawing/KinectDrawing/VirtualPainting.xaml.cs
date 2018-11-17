@@ -108,9 +108,9 @@ namespace KinectDrawing
 
             Unloaded += (s, e) =>
                 {
-                    colorReader?.Dispose();
-                    bodyReader?.Dispose();
-                    sensor?.Close();
+                    this.colorReader?.Dispose();
+                    this.bodyReader?.Dispose();
+                    this.sensor?.Close();
                 };
 
             this.timer.Tick += (s, e) =>
@@ -122,29 +122,29 @@ namespace KinectDrawing
 
             this.sensor = KinectSensor.GetDefault();
 
-            if (sensor != null)
+            if (this.sensor != null)
             {
                 this.sensor.Open();
 
-                this.width = sensor.ColorFrameSource.FrameDescription.Width;
-                this.height = sensor.ColorFrameSource.FrameDescription.Height;
+                this.width = this.sensor.ColorFrameSource.FrameDescription.Width;
+                this.height = this.sensor.ColorFrameSource.FrameDescription.Height;
 
                 StartColorReader();
 
-                this.bodyReader = sensor.BodyFrameSource.OpenReader();
+                this.bodyReader = this.sensor.BodyFrameSource.OpenReader();
                 this.bodyReader.FrameArrived += BodyReader_FrameArrived;
 
-                this.pixels = new byte[width * height * 4];
-                this.bitmap = new WriteableBitmap(width, height, 96.0, 96.0, PixelFormats.Bgra32, null);
+                this.pixels = new byte[this.width * this.height * 4];
+                this.bitmap = new WriteableBitmap(this.width, this.height, 96.0, 96.0, PixelFormats.Bgra32, null);
 
-                this.bodies = new Body[sensor.BodyFrameSource.BodyCount];
+                this.bodies = new Body[this.sensor.BodyFrameSource.BodyCount];
 
-                this.camera.Source = bitmap;
+                this.camera.Source = this.bitmap;
 
-                double frameX1 = ConfigurationConstants.BodyPresenceAreaLeftWidthRatio * this.width;
-                double frameY1 = ConfigurationConstants.BodyPresenceAreaTopHeightRatio * this.height;
-                double frameX2 = ConfigurationConstants.BodyPresenceAreaRightWidthRatio * this.width;
-                double frameY2 = ConfigurationConstants.BodyPresenceAreaBottomHeightRatio * this.height;
+                var frameX1 = ConfigurationConstants.BodyPresenceAreaLeftWidthRatio * this.width;
+                var frameY1 = ConfigurationConstants.BodyPresenceAreaTopHeightRatio * this.height;
+                var frameX2 = ConfigurationConstants.BodyPresenceAreaRightWidthRatio * this.width;
+                var frameY2 = ConfigurationConstants.BodyPresenceAreaBottomHeightRatio * this.height;
                 this.bodyPresenceArea = new Rect(frameX1, frameY1, frameX2 - frameX1, frameY2 - frameY1);
                 if (ConfigurationConstants.ShouldDisplayBodyPresenceAreas)
                 {
@@ -323,7 +323,7 @@ namespace KinectDrawing
 
         private void StartColorReader()
         {
-            this.colorReader = sensor.ColorFrameSource.OpenReader();
+            this.colorReader = this.sensor.ColorFrameSource.OpenReader();
             this.colorReader.FrameArrived += ColorReader_FrameArrived;
         }
 
@@ -334,14 +334,14 @@ namespace KinectDrawing
 
         private void ColorReader_FrameArrived(object sender, ColorFrameArrivedEventArgs e)
         {
-            using (var frame = e.FrameReference.AcquireFrame())
+            using (ColorFrame frame = e.FrameReference.AcquireFrame())
             {
                 if (frame != null)
                 {
-                    frame.CopyConvertedFrameDataToArray(pixels, ColorImageFormat.Bgra);
+                    frame.CopyConvertedFrameDataToArray(this.pixels, ColorImageFormat.Bgra);
 
                     this.bitmap.Lock();
-                    Marshal.Copy(pixels, 0, this.bitmap.BackBuffer, this.pixels.Length);
+                    Marshal.Copy(this.pixels, 0, this.bitmap.BackBuffer, this.pixels.Length);
                     this.bitmap.AddDirtyRect(new Int32Rect(0, 0, this.width, this.height));
                     this.bitmap.Unlock();
                 }
@@ -350,11 +350,11 @@ namespace KinectDrawing
 
         private void BodyReader_FrameArrived(object sender, BodyFrameArrivedEventArgs e)
         {
-            using (var frame = e.FrameReference.AcquireFrame())
+            using (BodyFrame frame = e.FrameReference.AcquireFrame())
             {
                 if (frame != null)
                 {
-                    frame.GetAndRefreshBodyData(bodies);
+                    frame.GetAndRefreshBodyData(this.bodies);
 
                     Body body = this.bodies.Where(b => b.IsTracked).FirstOrDefault();
 
@@ -363,7 +363,7 @@ namespace KinectDrawing
                         Joint handRight = body.Joints[JointType.HandRight];
                         DrawCursorIfNeeded(handRight);
 
-                        bool bodyIsInFrame = BodyIsInFrame(body);
+                        var bodyIsInFrame = BodyIsInFrame(body);
                         if (this.stateMachine.IsInState(State.WaitingForPresence) || this.stateMachine.IsInState(State.ConfirmingLeaving))
                         {
                             if (bodyIsInFrame)
@@ -387,10 +387,10 @@ namespace KinectDrawing
                 CameraSpacePoint handPosition = hand.Position;
                 ColorSpacePoint handPoint = this.sensor.CoordinateMapper.MapCameraPointToColorSpace(handPosition);
 
-                float x = handPoint.X;
-                float y = handPoint.Y;
+                var x = handPoint.X;
+                var y = handPoint.Y;
 
-                if (!float.IsInfinity(x) && ! float.IsInfinity(y))
+                if (!float.IsInfinity(x) && !float.IsInfinity(y))
                 {
                     if (this.stateMachine.IsInState(State.Painting))
                     {
@@ -421,10 +421,10 @@ namespace KinectDrawing
             ColorSpacePoint shoulderLeftPoint = this.sensor.CoordinateMapper.MapCameraPointToColorSpace(shoulderLeft.Position);
             ColorSpacePoint shoulderRightPoint = this.sensor.CoordinateMapper.MapCameraPointToColorSpace(shoulderRight.Position);
 
-            float bodyX1 = shoulderLeftPoint.X;
-            float bodyY1 = shoulderLeftPoint.Y;
-            float bodyX2 = shoulderRightPoint.X;
-            float bodyY2 = shoulderRightPoint.Y;
+            var bodyX1 = shoulderLeftPoint.X;
+            var bodyY1 = shoulderLeftPoint.Y;
+            var bodyX2 = shoulderRightPoint.X;
+            var bodyY2 = shoulderRightPoint.Y;
             if (float.IsInfinity(bodyX1) || float.IsInfinity(bodyY1) || float.IsInfinity(bodyX2) || float.IsInfinity(bodyY2))
             {
                 return false;
