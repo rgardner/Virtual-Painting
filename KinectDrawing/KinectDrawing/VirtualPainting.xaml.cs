@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -73,6 +74,7 @@ namespace KinectDrawing
         private readonly StateMachine<State, Trigger> stateMachine = new StateMachine<State, Trigger>(State.WaitingForPresence);
 
         private readonly DispatcherTimer timer = new DispatcherTimer();
+        private readonly BackgroundWorker backgroundWorker = new BackgroundWorker();
 
         private KinectSensor sensor = null;
         private ColorFrameReader colorReader = null;
@@ -150,6 +152,22 @@ namespace KinectDrawing
                 }
 
                 this.currentBrushStroke = this.brushColorCycler.CurrentBrush;
+
+                this.backgroundWorker.DoWork += (s, e) =>
+                    {
+                        BitmapEncoder pngEncoder = new PngBitmapEncoder();
+                        pngEncoder.Frames.Add(BitmapFrame.Create((RenderTargetBitmap)e.Argument));
+                        using (var ms = new MemoryStream())
+                        {
+                            pngEncoder.Save(ms);
+
+                            string fileDirectory = Environment.GetEnvironmentVariable(ConfigurationConstants.SavedImagesDirectoryPathEnvironmentVariableName)
+                                ?? Environment.CurrentDirectory;
+                            string fileName = DateTime.UtcNow.ToString("yyyy-MM-ddTHH-mm-ss") + ".png";
+                            string fullPath = System.IO.Path.Combine(fileDirectory, fileName);
+                            File.WriteAllBytes(fullPath, ms.ToArray());
+                        }
+                    };
             }
 
             this.DataContext = this;
@@ -290,7 +308,7 @@ namespace KinectDrawing
                         this.brush.Visibility = Visibility.Collapsed;
                         this.overlay.Source = overlayImages[State.SavingImage];
 
-                        // TODO: save image to a file
+                        SavePaintingToFile();
 
                         this.timer.Interval = new TimeSpan(0, 0, 6);
                         this.timer.Start();
@@ -443,6 +461,19 @@ namespace KinectDrawing
 
             Canvas.SetLeft(stackPanel, rect.Left);
             Canvas.SetTop(stackPanel, rect.Top);
+        }
+
+        /// <summary>
+        /// Save the painting to a file, offloading the encoding and file writing to a background thread.
+        /// </summary>
+        private void SavePaintingToFile()
+        {
+            var rtb = new RenderTargetBitmap(this.width, this.height, 96d, 96d, PixelFormats.Default);
+            rtb.Render(this.camera);
+            rtb.Render(this.canvas);
+            // TODO: add saved image filter to RenderTargetBitmap
+            rtb.Freeze(); // necessary for the backgroundWorker to access it
+            this.backgroundWorker.RunWorkerAsync(rtb);
         }
     }
 }
