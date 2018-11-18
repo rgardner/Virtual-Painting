@@ -6,9 +6,11 @@
         xmlns:local="clr-namespace:KinectDrawing"
         mc:Ignorable="d"
         Title="Virtual Painting" Height="350" Width="525"
-        WindowStyle="None"
+        WindowStyle="SingleBorderWindow"
         WindowState="Maximized"
         Background="#2760A3">
+
+    <!-- TODO: Use WindowStyle="None" for full-screen. -->
 
     <Grid>
         <local:VirtualPainting />
