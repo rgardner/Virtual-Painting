@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -43,101 +44,9 @@ namespace KinectDrawing
             SavingImage,
         };
 
-        private class BrushColorCycler
-        {
-            private static readonly SolidColorBrush[] brushes = new SolidColorBrush[]
-            {
-                new SolidColorBrush(Color.FromRgb(39, 96, 163)),
-                new SolidColorBrush(Color.FromRgb(242, 108, 96)),
-                new SolidColorBrush(Color.FromRgb(153, 86, 152)),
-                new SolidColorBrush(Color.FromRgb(0, 90, 100)),
-                new SolidColorBrush(Color.FromRgb(236, 0, 140)),
-                new SolidColorBrush(Color.FromRgb(129, 203, 235)),
-                new SolidColorBrush(Color.FromRgb(223, 130, 182)),
-            };
-
-            private int currentBrushIndex = 0;
-
-            public SolidColorBrush CurrentBrush => brushes[this.currentBrushIndex];
-
-            public SolidColorBrush Next()
-            {
-                this.currentBrushIndex++;
-                if (this.currentBrushIndex == brushes.Length)
-                {
-                    this.currentBrushIndex = 0;
-                }
-
-                return this.CurrentBrush;
-            }
-        }
-
-        private class RawJointData
-        {
-            public float X { get; set; }
-            public float Y { get; set; }
-            public float CameraX { get; set; }
-            public float CameraY { get; set; }
-            public float CameraZ { get; set; }
-            public TrackingState TrackingState { get; set; }
-
-            public RawJointData(Joint joint, KinectSensor sensor)
-            {
-                CameraSpacePoint cameraSpacePoint = joint.Position;
-                ColorSpacePoint colorSpacePoint = sensor.CoordinateMapper.MapCameraPointToColorSpace(cameraSpacePoint);
-
-                this.CameraX = cameraSpacePoint.X;
-                this.CameraY = cameraSpacePoint.Y;
-                this.CameraZ = cameraSpacePoint.Z;
-                this.X = colorSpacePoint.X;
-                this.Y = colorSpacePoint.Y;
-                this.TrackingState = joint.TrackingState;
-            }
-
-            public static string GetCSVHeader(JointType jointType)
-            {
-                return $"{jointType}_X,{jointType}_Y,{jointType}_CameraX,{jointType}_CameraY,{jointType}_CameraZ,{jointType}_TrackingState";
-            }
-
-            public string ToCSV()
-            {
-                return $"{this.X},{this.Y},{this.CameraX},{this.CameraY},{this.CameraZ},{this.TrackingState}";
-            }
-        }
-
-        private class RawBodyFrameData
-        {
-            public RawJointData HandTip;
-            public RawJointData Hand;
-            public RawJointData Wrist;
-            public RawJointData Elbow;
-
-            public RawBodyFrameData(Body body, KinectSensor sensor)
-            {
-                this.HandTip = new RawJointData(body.Joints[JointType.HandTipRight], sensor);
-                this.Hand = new RawJointData(body.Joints[JointType.HandRight], sensor);
-                this.Wrist = new RawJointData(body.Joints[JointType.WristRight], sensor);
-                this.Elbow = new RawJointData(body.Joints[JointType.ElbowRight], sensor);
-            }
-
-            public static string GetCSVHeader()
-            {
-                return $"{RawJointData.GetCSVHeader(JointType.HandTipRight)},"
-                    + $"{RawJointData.GetCSVHeader(JointType.HandRight)},"
-                    + $"{RawJointData.GetCSVHeader(JointType.WristRight)},"
-                    + $"{RawJointData.GetCSVHeader(JointType.ElbowRight)}";
-            }
-
-            public string ToCSV()
-            {
-                return $"{this.HandTip.ToCSV()},{this.Hand.ToCSV()},{this.Wrist.ToCSV()},{this.Elbow.ToCSV()}";
-            }
-        }
-
         private readonly StateMachine<State, Trigger> stateMachine = new StateMachine<State, Trigger>(State.WaitingForPresence);
 
         private readonly DispatcherTimer timer = new DispatcherTimer();
-        private readonly BackgroundWorker backgroundWorker = new BackgroundWorker();
 
         private KinectSensor sensor = null;
         private ColorFrameReader colorReader = null;
@@ -165,9 +74,7 @@ namespace KinectDrawing
             [State.SavingImage] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_saved.PNG"))
         };
 
-        private IList<RawBodyFrameData> rawBodyFrameDataPoints = new List<RawBodyFrameData>();
-        private BackgroundWorker handFrameBackgroundWorker = new BackgroundWorker();
-        private string currentTestRunDirectoryPath;
+        private IPaintingSession paintingSession = null;
 
         public VirtualPainting()
         {
@@ -196,7 +103,7 @@ namespace KinectDrawing
                 this.width = this.sensor.ColorFrameSource.FrameDescription.Width;
                 this.height = this.sensor.ColorFrameSource.FrameDescription.Height;
 
-                StartColorReader();
+                EnsureStartedColorReader();
 
                 this.bodyReader = this.sensor.BodyFrameSource.OpenReader();
                 this.bodyReader.FrameArrived += BodyReader_FrameArrived;
@@ -219,64 +126,15 @@ namespace KinectDrawing
                 }
 
                 this.currentBrushStroke = this.brushColorCycler.CurrentBrush;
-
-                this.backgroundWorker.DoWork += (s, e) =>
-                    {
-                        BitmapEncoder pngEncoder = new PngBitmapEncoder();
-                        pngEncoder.Frames.Add(BitmapFrame.Create((RenderTargetBitmap)e.Argument));
-                        using (var ms = new MemoryStream())
-                        {
-                            pngEncoder.Save(ms);
-
-                            string fileName = DateTime.UtcNow.ToString("yyyy-MM-ddTHH-mm-ss") + ".png";
-                            string fullPath = System.IO.Path.Combine(this.currentTestRunDirectoryPath, fileName);
-                            Directory.CreateDirectory(this.currentTestRunDirectoryPath);
-                            File.WriteAllBytes(fullPath, ms.ToArray());
-                        }
-                    };
-
-                this.handFrameBackgroundWorker.DoWork += (s, e) =>
-                    {
-                        var argument = (IList<object>)e.Argument;
-                        var handFrameDataPoints = (IList<RawBodyFrameData>)argument[0];
-                        var camera = (RenderTargetBitmap)argument[1];
-
-                        string directoryPath = this.currentTestRunDirectoryPath;
-                        string fileName = "hand_frame_data.csv";
-                        string filePath = System.IO.Path.Combine(this.currentTestRunDirectoryPath, fileName);
-                        var handFrameDataPointStrings = handFrameDataPoints.Select(d => d.ToCSV());
-                        Directory.CreateDirectory(this.currentTestRunDirectoryPath);
-
-                        using (var file = new StreamWriter(filePath))
-                        {
-                            file.WriteLine(RawBodyFrameData.GetCSVHeader());
-                            foreach (var dataPoint in handFrameDataPointStrings)
-                            {
-                                file.WriteLine(dataPoint);
-                            }
-                        }
-
-                        BitmapEncoder pngEncoder = new PngBitmapEncoder();
-                        pngEncoder.Frames.Add(BitmapFrame.Create(camera));
-                        using (var ms = new MemoryStream())
-                        {
-                            pngEncoder.Save(ms);
-
-                            string cameraFilePath = "raw_camera.png";
-                            File.WriteAllBytes(System.IO.Path.Combine(this.currentTestRunDirectoryPath, cameraFilePath), ms.ToArray());
-                        }
-                    };
             }
 
             this.DataContext = this;
         }
 
-        private string GetTestRunDirectoryPath()
+        private string GetSavedImagesDirectoryPath()
         {
-            string parentDirectoryPath = Environment.GetEnvironmentVariable(ConfigurationConstants.SavedImagesDirectoryPathEnvironmentVariableName)
+            return Environment.GetEnvironmentVariable(ConfigurationConstants.SavedImagesDirectoryPathEnvironmentVariableName)
                 ?? Environment.CurrentDirectory;
-            string directoryName = DateTime.UtcNow.ToString("yyyy-MM-ddTHH-mm-ss");
-            return System.IO.Path.Combine(parentDirectoryPath, directoryName);
         }
 
         public Brush BrushStroke
@@ -312,13 +170,7 @@ namespace KinectDrawing
                     {
                         Debug.WriteLine("Waiting for presence...");
                         this.overlay.Source = overlayImages[State.WaitingForPresence];
-
-                        if ((t.Source == State.ConfirmingLeaving) || (t.Source == State.SavingImage))
-                        {
-                            var elementCountToRemove = this.canvas.Children.Count - 1;
-                            this.canvas.Children.RemoveRange(1, elementCountToRemove);
-                            StartColorReader();
-                        }
+                        EnsureStartedColorReader();
                     })
                 .Permit(Trigger.PersonEnters, State.ConfirmingPresence);
 
@@ -384,14 +236,13 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Painting...");
-                        this.currentTestRunDirectoryPath = GetTestRunDirectoryPath();
                         if (t.Source == State.SavingImage)
                         {
                             this.BrushStroke = this.brushColorCycler.Next();
                         }
 
-                        var elementCountToRemove = this.canvas.Children.Count - 1;
-                        this.canvas.Children.RemoveRange(1, elementCountToRemove);
+                        this.paintingSession = CreatePaintingSession();
+
                         this.overlay.Source = overlayImages[State.Painting];
                         this.timer.Interval = new TimeSpan(0, 0, 15);
                         this.timer.Start();
@@ -406,6 +257,14 @@ namespace KinectDrawing
                         this.timer.Interval = new TimeSpan(0, 0, 2);
                         this.timer.Start();
                     })
+                .OnExit(t =>
+                {
+                    if (t.Destination == State.WaitingForPresence)
+                    {
+                        this.paintingSession.ClearCanvas(this.canvas);
+                        this.paintingSession = null;
+                    }
+                })
                 .Permit(Trigger.PersonEnters, State.Painting)
                 .Permit(Trigger.TimerTick, State.WaitingForPresence)
                 .Ignore(Trigger.PersonLeaves);
@@ -417,7 +276,7 @@ namespace KinectDrawing
                         this.brush.Visibility = Visibility.Collapsed;
                         this.overlay.Source = overlayImages[State.SavingImage];
 
-                        SavePaintingToFile();
+                        this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height, GetSavedImagesDirectoryPath());
 
                         this.timer.Interval = new TimeSpan(0, 0, 6);
                         this.timer.Start();
@@ -425,20 +284,29 @@ namespace KinectDrawing
                 .OnExit(t =>
                     {
                         this.brush.Visibility = Visibility.Visible;
+                        this.paintingSession.ClearCanvas(this.canvas);
+                        this.paintingSession = null;
                     })
                 .Permit(Trigger.TimerTick, State.Painting)
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
         }
 
-        private void StartColorReader()
+        private void EnsureStartedColorReader()
         {
-            this.colorReader = this.sensor.ColorFrameSource.OpenReader();
-            this.colorReader.FrameArrived += ColorReader_FrameArrived;
+            if (this.colorReader == null)
+            {
+                this.colorReader = this.sensor.ColorFrameSource.OpenReader();
+                this.colorReader.FrameArrived += ColorReader_FrameArrived;
+            }
+
+            Contract.Ensures(this.colorReader != null);
         }
 
         private void StopColorReader()
         {
             this.colorReader?.Dispose();
+            this.colorReader = null;
+            Contract.Ensures(this.colorReader == null);
         }
 
         private void ColorReader_FrameArrived(object sender, ColorFrameArrivedEventArgs e)
@@ -469,18 +337,10 @@ namespace KinectDrawing
 
                     if (body != null)
                     {
-                        Joint handRight = body.Joints[JointType.HandRight];
-                        DrawCursorIfNeeded(handRight);
-
+                        DrawCursorIfNeeded(body.Joints[JointType.HandRight]);
                         if (this.stateMachine.IsInState(State.Painting))
                         {
-                            if ((this.rawBodyFrameDataPoints.Count % 50) == 0)
-                            {
-                                this.BrushStroke = this.brushColorCycler.Next();
-                                this.canvas.Children.Add(CreateDrawingLine());
-                            }
-
-                            LogRawBodyFrameData(body);
+                            this.paintingSession.Paint(body, this.canvas);
                         }
 
                         var bodyIsInFrame = BodyIsInFrame(body);
@@ -500,25 +360,6 @@ namespace KinectDrawing
             }
         }
 
-        private Polyline CreateDrawingLine()
-        {
-            return new Polyline
-            {
-                Stroke = this.BrushStroke,
-                StrokeThickness = 20,
-                Effect = new BlurEffect
-                {
-                    Radius = 2
-                }
-            };
-        }
-
-        private void LogRawBodyFrameData(Body body)
-        {
-            var frameData = new RawBodyFrameData(body, this.sensor);
-            this.rawBodyFrameDataPoints.Add(frameData);
-        }
-
         private void DrawCursorIfNeeded(Joint hand)
         {
             if (hand.TrackingState != TrackingState.NotTracked)
@@ -531,21 +372,16 @@ namespace KinectDrawing
 
                 if (!float.IsInfinity(x) && !float.IsInfinity(y))
                 {
-                    if (this.stateMachine.IsInState(State.Painting))
-                    {
-                        if (this.canvas.Children.Count == 1)
-                        {
-                            this.canvas.Children.Add(CreateDrawingLine());
-                        }
-
-                        var trail = this.canvas.Children[this.canvas.Children.Count - 1] as Polyline;
-                        trail.Points.Add(new Point { X = x, Y = y });
-                    }
-
                     Canvas.SetLeft(this.brush, x - this.brush.Width / 2.0);
                     Canvas.SetTop(this.brush, y - this.brush.Height);
                 }
             }
+        }
+
+        private IPaintingSession CreatePaintingSession()
+        {
+            //return new BasicPaintingSession(this.sensor, this.BrushStroke);
+            return new TestRunPaintingSession(this.sensor);
         }
 
         /// <summary>
@@ -606,26 +442,6 @@ namespace KinectDrawing
 
             Canvas.SetLeft(stackPanel, rect.Left);
             Canvas.SetTop(stackPanel, rect.Top);
-        }
-
-        /// <summary>
-        /// Save the painting to a file, offloading the encoding and file writing to a background thread.
-        /// </summary>
-        private void SavePaintingToFile()
-        {
-            var rtb = new RenderTargetBitmap(this.width, this.height, 96d, 96d, PixelFormats.Default);
-            rtb.Render(this.camera);
-            rtb.Render(this.canvas);
-            // TODO: add saved image filter to RenderTargetBitmap
-            rtb.Freeze(); // necessary for the backgroundWorker to access it
-            this.backgroundWorker.RunWorkerAsync(rtb);
-
-            var handFrameDataPointsToSave = new List<RawBodyFrameData>(this.rawBodyFrameDataPoints);
-            this.rawBodyFrameDataPoints.Clear();
-            var rtb2 = new RenderTargetBitmap(this.width, this.height, 96d, 96d, PixelFormats.Default);
-            rtb2.Render(this.camera);
-            rtb2.Freeze();
-            this.handFrameBackgroundWorker.RunWorkerAsync(new List<object> { handFrameDataPointsToSave, rtb2 });
         }
     }
 }
