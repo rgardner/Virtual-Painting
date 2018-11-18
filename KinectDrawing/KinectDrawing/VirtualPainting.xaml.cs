@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
@@ -71,18 +72,65 @@ namespace KinectDrawing
             }
         }
 
-        private class HandFrameData
+        private class RawJointData
         {
             public float X { get; set; }
             public float Y { get; set; }
-            public TrackingState TrackingState { get; set; }
             public float CameraX { get; set; }
             public float CameraY { get; set; }
             public float CameraZ { get; set; }
+            public TrackingState TrackingState { get; set; }
+
+            public RawJointData(Joint joint, KinectSensor sensor)
+            {
+                CameraSpacePoint cameraSpacePoint = joint.Position;
+                ColorSpacePoint colorSpacePoint = sensor.CoordinateMapper.MapCameraPointToColorSpace(cameraSpacePoint);
+
+                this.CameraX = cameraSpacePoint.X;
+                this.CameraY = cameraSpacePoint.Y;
+                this.CameraZ = cameraSpacePoint.Z;
+                this.X = colorSpacePoint.X;
+                this.Y = colorSpacePoint.Y;
+                this.TrackingState = joint.TrackingState;
+            }
+
+            public static string GetCSVHeader(JointType jointType)
+            {
+                return $"{jointType}_X,{jointType}_Y,{jointType}_CameraX,{jointType}_CameraY,{jointType}_CameraZ,{jointType}_TrackingState";
+            }
 
             public string ToCSV()
             {
-                return $"{this.X},{this.Y},{this.TrackingState.ToString()},{this.CameraX},{this.CameraY},{this.CameraZ}";
+                return $"{this.X},{this.Y},{this.CameraX},{this.CameraY},{this.CameraZ},{this.TrackingState}";
+            }
+        }
+
+        private class RawBodyFrameData
+        {
+            public RawJointData HandTip;
+            public RawJointData Hand;
+            public RawJointData Wrist;
+            public RawJointData Elbow;
+
+            public RawBodyFrameData(Body body, KinectSensor sensor)
+            {
+                this.HandTip = new RawJointData(body.Joints[JointType.HandTipRight], sensor);
+                this.Hand = new RawJointData(body.Joints[JointType.HandRight], sensor);
+                this.Wrist = new RawJointData(body.Joints[JointType.WristRight], sensor);
+                this.Elbow = new RawJointData(body.Joints[JointType.ElbowRight], sensor);
+            }
+
+            public static string GetCSVHeader()
+            {
+                return $"{RawJointData.GetCSVHeader(JointType.HandTipRight)},"
+                    + $"{RawJointData.GetCSVHeader(JointType.HandRight)},"
+                    + $"{RawJointData.GetCSVHeader(JointType.WristRight)},"
+                    + $"{RawJointData.GetCSVHeader(JointType.ElbowRight)}";
+            }
+
+            public string ToCSV()
+            {
+                return $"{this.HandTip.ToCSV()},{this.Hand.ToCSV()},{this.Wrist.ToCSV()},{this.Elbow.ToCSV()}";
             }
         }
 
@@ -117,7 +165,7 @@ namespace KinectDrawing
             [State.SavingImage] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_saved.PNG"))
         };
 
-        private IList<HandFrameData> handFrameDataPoints = new List<HandFrameData>();
+        private IList<RawBodyFrameData> rawBodyFrameDataPoints = new List<RawBodyFrameData>();
         private BackgroundWorker handFrameBackgroundWorker = new BackgroundWorker();
         private string currentTestRunDirectoryPath;
 
@@ -190,18 +238,24 @@ namespace KinectDrawing
                 this.handFrameBackgroundWorker.DoWork += (s, e) =>
                     {
                         var argument = (IList<object>)e.Argument;
-                        var handFrameDataPoints = (IList<HandFrameData>)argument[0];
+                        var handFrameDataPoints = (IList<RawBodyFrameData>)argument[0];
                         var camera = (RenderTargetBitmap)argument[1];
 
                         string directoryPath = this.currentTestRunDirectoryPath;
                         string fileName = "hand_frame_data.csv";
                         string filePath = System.IO.Path.Combine(this.currentTestRunDirectoryPath, fileName);
-                        var handFrameDataPointStrings = from dataPoint in handFrameDataPoints
-                                                        select dataPoint.ToCSV();
+                        var handFrameDataPointStrings = handFrameDataPoints.Select(d => d.ToCSV());
                         Directory.CreateDirectory(this.currentTestRunDirectoryPath);
-                        File.WriteAllLines(filePath, handFrameDataPointStrings);
 
-                        // Save image too
+                        using (var file = new StreamWriter(filePath))
+                        {
+                            file.WriteLine(RawBodyFrameData.GetCSVHeader());
+                            foreach (var dataPoint in handFrameDataPointStrings)
+                            {
+                                file.WriteLine(dataPoint);
+                            }
+                        }
+
                         BitmapEncoder pngEncoder = new PngBitmapEncoder();
                         pngEncoder.Frames.Add(BitmapFrame.Create(camera));
                         using (var ms = new MemoryStream())
@@ -261,7 +315,8 @@ namespace KinectDrawing
 
                         if ((t.Source == State.ConfirmingLeaving) || (t.Source == State.SavingImage))
                         {
-                            this.trail.Points.Clear();
+                            var elementCountToRemove = this.canvas.Children.Count - 1;
+                            this.canvas.Children.RemoveRange(1, elementCountToRemove);
                             StartColorReader();
                         }
                     })
@@ -335,7 +390,8 @@ namespace KinectDrawing
                             this.BrushStroke = this.brushColorCycler.Next();
                         }
 
-                        this.trail.Points.Clear();
+                        var elementCountToRemove = this.canvas.Children.Count - 1;
+                        this.canvas.Children.RemoveRange(1, elementCountToRemove);
                         this.overlay.Source = overlayImages[State.Painting];
                         this.timer.Interval = new TimeSpan(0, 0, 15);
                         this.timer.Start();
@@ -416,6 +472,17 @@ namespace KinectDrawing
                         Joint handRight = body.Joints[JointType.HandRight];
                         DrawCursorIfNeeded(handRight);
 
+                        if (this.stateMachine.IsInState(State.Painting))
+                        {
+                            if ((this.rawBodyFrameDataPoints.Count % 50) == 0)
+                            {
+                                this.BrushStroke = this.brushColorCycler.Next();
+                                this.canvas.Children.Add(CreateDrawingLine());
+                            }
+
+                            LogRawBodyFrameData(body);
+                        }
+
                         var bodyIsInFrame = BodyIsInFrame(body);
                         if (this.stateMachine.IsInState(State.WaitingForPresence) || this.stateMachine.IsInState(State.ConfirmingLeaving))
                         {
@@ -433,6 +500,25 @@ namespace KinectDrawing
             }
         }
 
+        private Polyline CreateDrawingLine()
+        {
+            return new Polyline
+            {
+                Stroke = this.BrushStroke,
+                StrokeThickness = 20,
+                Effect = new BlurEffect
+                {
+                    Radius = 2
+                }
+            };
+        }
+
+        private void LogRawBodyFrameData(Body body)
+        {
+            var frameData = new RawBodyFrameData(body, this.sensor);
+            this.rawBodyFrameDataPoints.Add(frameData);
+        }
+
         private void DrawCursorIfNeeded(Joint hand)
         {
             if (hand.TrackingState != TrackingState.NotTracked)
@@ -447,10 +533,13 @@ namespace KinectDrawing
                 {
                     if (this.stateMachine.IsInState(State.Painting))
                     {
-                        this.handFrameDataPoints.Add(new HandFrameData {
-                            X = x, Y = y, TrackingState = hand.TrackingState,
-                            CameraX = handPosition.X, CameraY = handPosition.Y, CameraZ = handPosition.Z });
-                        this.trail.Points.Add(new Point { X = x, Y = y });
+                        if (this.canvas.Children.Count == 1)
+                        {
+                            this.canvas.Children.Add(CreateDrawingLine());
+                        }
+
+                        var trail = this.canvas.Children[this.canvas.Children.Count - 1] as Polyline;
+                        trail.Points.Add(new Point { X = x, Y = y });
                     }
 
                     Canvas.SetLeft(this.brush, x - this.brush.Width / 2.0);
@@ -531,8 +620,8 @@ namespace KinectDrawing
             rtb.Freeze(); // necessary for the backgroundWorker to access it
             this.backgroundWorker.RunWorkerAsync(rtb);
 
-            var handFrameDataPointsToSave = new List<HandFrameData>(this.handFrameDataPoints);
-            this.handFrameDataPoints.Clear();
+            var handFrameDataPointsToSave = new List<RawBodyFrameData>(this.rawBodyFrameDataPoints);
+            this.rawBodyFrameDataPoints.Clear();
             var rtb2 = new RenderTargetBitmap(this.width, this.height, 96d, 96d, PixelFormats.Default);
             rtb2.Render(this.camera);
             rtb2.Freeze();
