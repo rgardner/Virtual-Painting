@@ -3,14 +3,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
@@ -22,7 +20,7 @@ namespace KinectDrawing
     /// <summary>
     /// Interaction logic for VirtualPainting.xaml
     /// </summary>
-    public partial class VirtualPainting : UserControl, INotifyPropertyChanged
+    public partial class VirtualPainting : UserControl
     {
         private enum Trigger
         {
@@ -61,7 +59,8 @@ namespace KinectDrawing
         private Rect bodyPresenceArea;
 
         private BrushColorCycler brushColorCycler = new BrushColorCycler();
-        private Brush currentBrushStroke;
+        private SolidColorBrush currentBrush;
+        private IPaintingSession paintingSession = null;
         private static readonly IDictionary<State, BitmapImage> overlayImages = new Dictionary<State, BitmapImage>
         {
             [State.WaitingForPresence] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_smile.PNG")),
@@ -73,8 +72,6 @@ namespace KinectDrawing
             [State.Painting] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_paint.PNG")),
             [State.SavingImage] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_saved.PNG"))
         };
-
-        private IPaintingSession paintingSession = null;
 
         public VirtualPainting()
         {
@@ -124,8 +121,6 @@ namespace KinectDrawing
                 {
                     DrawRect(this.bodyPresenceArea, this.hitTestingFrame);
                 }
-
-                this.currentBrushStroke = this.brushColorCycler.CurrentBrush;
             }
 
             this.DataContext = this;
@@ -135,27 +130,6 @@ namespace KinectDrawing
         {
             return Environment.GetEnvironmentVariable(ConfigurationConstants.SavedImagesDirectoryPathEnvironmentVariableName)
                 ?? Environment.CurrentDirectory;
-        }
-
-        public Brush BrushStroke
-        {
-            get => this.currentBrushStroke;
-
-            private set
-            {
-                if (value != this.currentBrushStroke)
-                {
-                    this.currentBrushStroke = value;
-                    NotifyPropertyChanged();
-                }
-            }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         private void ConfigureStateMachine()
@@ -236,10 +210,7 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Painting...");
-                        if (t.Source == State.SavingImage)
-                        {
-                            this.BrushStroke = this.brushColorCycler.Next();
-                        }
+                        this.currentBrush = this.brushColorCycler.Next();
 
                         this.paintingSession = CreatePaintingSession();
 
@@ -340,7 +311,7 @@ namespace KinectDrawing
                         DrawCursorIfNeeded(body.Joints[JointType.HandRight]);
                         if (this.stateMachine.IsInState(State.Painting))
                         {
-                            this.paintingSession.Paint(body, this.canvas);
+                            this.paintingSession.Paint(body, this.currentBrush, this.canvas);
                         }
 
                         var bodyIsInFrame = BodyIsInFrame(body);
@@ -380,8 +351,9 @@ namespace KinectDrawing
 
         private IPaintingSession CreatePaintingSession()
         {
-            //return new BasicPaintingSession(this.sensor, this.BrushStroke);
-            return new TestRunPaintingSession(this.sensor);
+            var realPaintingSession = new BasicPaintingSession(this.sensor);
+            //var realPaintingSession = new LinePaintingSession(this.sensor);
+            return new TestRunPaintingSession(this.sensor, realPaintingSession);
         }
 
         /// <summary>

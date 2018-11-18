@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
+﻿using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -16,35 +12,14 @@ namespace KinectDrawing
     class BasicPaintingSession : IPaintingSession
     {
         private readonly KinectSensor sensor;
-        private readonly Brush brush;
-        private readonly BackgroundWorker backgroundWorker = new BackgroundWorker();
+        private readonly ImageSaverBackgroundWorker imageSaver = new ImageSaverBackgroundWorker();
 
-        public BasicPaintingSession(KinectSensor sensor, Brush brush)
+        public BasicPaintingSession(KinectSensor sensor)
         {
             this.sensor = sensor;
-            this.brush = brush;
-
-            this.backgroundWorker.DoWork += (s, e) =>
-                {
-                    var arguments = e.Argument as IList<object>;
-                    var image = arguments[0] as RenderTargetBitmap;
-                    var directoryPath = arguments[1] as string;
-
-                    BitmapEncoder pngEncoder = new PngBitmapEncoder();
-                    pngEncoder.Frames.Add(BitmapFrame.Create(image));
-                    using (var ms = new MemoryStream())
-                    {
-                        pngEncoder.Save(ms);
-
-                        string fileName = DateTime.UtcNow.ToString("yyyy-MM-ddTHH-mm-ss") + ".png";
-                        string fullPath = System.IO.Path.Combine(directoryPath, fileName);
-                        Directory.CreateDirectory(directoryPath);
-                        File.WriteAllBytes(fullPath, ms.ToArray());
-                    }
-                };
         }
 
-        public void Paint(Body body, Canvas canvas)
+        public void Paint(Body body, Brush brush, Canvas canvas, bool startNewSubSession)
         {
             var hand = body.Joints[JointType.HandRight];
             if (hand.TrackingState != TrackingState.NotTracked)
@@ -57,9 +32,9 @@ namespace KinectDrawing
 
                 if (!float.IsInfinity(x) && !float.IsInfinity(y))
                 {
-                    if (canvas.Children.Count == 1)
+                    if (startNewSubSession || (canvas.Children.Count == 1))
                     {
-                        canvas.Children.Add(CreateDrawingLine());
+                        canvas.Children.Add(CreateDrawingLine(brush));
                     }
 
                     var trail = canvas.Children[canvas.Children.Count - 1] as Polyline;
@@ -75,8 +50,7 @@ namespace KinectDrawing
             rtb.Render(canvas);
             // TODO: add saved image filter to RenderTargetBitmap
             rtb.Freeze(); // necessary for the backgroundWorker to access it
-            this.backgroundWorker.RunWorkerAsync(new List<object> { rtb, directoryPath });
-
+            this.imageSaver.SaveImageAsync(rtb, directoryPath);
         }
 
         public void ClearCanvas(Canvas canvas)
@@ -86,11 +60,11 @@ namespace KinectDrawing
             canvas.Children.RemoveRange(1, elementCountToRemove);
         }
 
-        private Polyline CreateDrawingLine()
+        private Polyline CreateDrawingLine(Brush brush)
         {
             return new Polyline
             {
-                Stroke = this.brush,
+                Stroke = brush,
                 StrokeThickness = 20,
                 Effect = new BlurEffect
                 {

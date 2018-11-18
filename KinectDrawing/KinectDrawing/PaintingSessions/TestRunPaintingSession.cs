@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using Microsoft.Kinect;
 
 namespace KinectDrawing
@@ -78,15 +75,17 @@ namespace KinectDrawing
         }
 
         private readonly KinectSensor sensor;
+        private readonly IPaintingSession realPaintingSession;
         private Brush brush;
         private readonly BrushColorCycler brushColorCycler = new BrushColorCycler();
         private readonly BackgroundWorker backgroundWorker = new BackgroundWorker();
 
         private IList<RawBodyFrameData> rawBodyFrameDataPoints = new List<RawBodyFrameData>();
 
-        public TestRunPaintingSession(KinectSensor sensor)
+        public TestRunPaintingSession(KinectSensor sensor, IPaintingSession realPaintingSession)
         {
             this.sensor = sensor;
+            this.realPaintingSession = realPaintingSession;
 
             this.backgroundWorker.DoWork += (s, e) =>
                 {
@@ -95,16 +94,16 @@ namespace KinectDrawing
                     var background = arguments[1] as RenderTargetBitmap;
                     var parentDirectoryPath = arguments[2] as string;
 
-                    var directoryPath = System.IO.Path.Combine(parentDirectoryPath, DateTime.UtcNow.ToString("yyyy-MM-ddTHH-mm-ss"));
+                    var directoryPath = System.IO.Path.Combine(parentDirectoryPath, DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss"));
 
                     // Save the background with the painting
                     string backgroundWithPaintingFilePath = System.IO.Path.Combine(directoryPath, "painting.png");
                     Directory.CreateDirectory(directoryPath);
-                    SaveRenderTargetBitmapAsPng(backgroundWithPainting, backgroundWithPaintingFilePath);
+                    ImageSaverBackgroundWorker.SaveRenderTargetBitmapAsPng(backgroundWithPainting, backgroundWithPaintingFilePath);
 
                     // Save just the background
                     string backgroundFilePath = System.IO.Path.Combine(directoryPath, "background.png");
-                    SaveRenderTargetBitmapAsPng(background, backgroundFilePath);
+                    ImageSaverBackgroundWorker.SaveRenderTargetBitmapAsPng(background, backgroundFilePath);
 
                     // Save the raw body frame data points
                     string rawBodyFrameDataFilePath = System.IO.Path.Combine(directoryPath, "raw_body_frame_data.csv");
@@ -121,31 +120,16 @@ namespace KinectDrawing
                 };
         }
 
-        public void Paint(Body body, Canvas canvas)
+        public void Paint(Body body, Brush brush, Canvas canvas, bool _startNewSubSession)
         {
             // Cycle color every 50 points to ease debugging
-            if ((this.rawBodyFrameDataPoints.Count % 50) == 0)
+            bool startNewSubSession = (this.rawBodyFrameDataPoints.Count % 50) == 0;
+            if (startNewSubSession)
             {
                 this.brush = this.brushColorCycler.Next();
-                canvas.Children.Add(CreateDrawingLine());
             }
 
-            // Paint on the canvas
-            var hand = body.Joints[JointType.HandRight];
-            if (hand.TrackingState != TrackingState.NotTracked)
-            {
-                CameraSpacePoint handPosition = hand.Position;
-                ColorSpacePoint handPoint = sensor.CoordinateMapper.MapCameraPointToColorSpace(handPosition);
-
-                var x = handPoint.X;
-                var y = handPoint.Y;
-
-                if (!float.IsInfinity(x) && !float.IsInfinity(y))
-                {
-                    var trail = canvas.Children[canvas.Children.Count - 1] as Polyline;
-                    trail.Points.Add(new Point { X = x, Y = y });
-                }
-            }
+            realPaintingSession.Paint(body, this.brush, canvas, startNewSubSession);
 
             // Log data points
             var frameData = new RawBodyFrameData(body, this.sensor);
@@ -167,32 +151,7 @@ namespace KinectDrawing
 
         public void ClearCanvas(Canvas canvas)
         {
-            var elementCountToRemove = canvas.Children.Count - 1;
-            canvas.Children.RemoveRange(1, elementCountToRemove);
-        }
-
-        private void SaveRenderTargetBitmapAsPng(RenderTargetBitmap rtb, string filePath)
-        {
-            BitmapEncoder pngEncoder = new PngBitmapEncoder();
-            pngEncoder.Frames.Add(BitmapFrame.Create(rtb));
-            using (var ms = new MemoryStream())
-            {
-                pngEncoder.Save(ms);
-                File.WriteAllBytes(filePath, ms.ToArray());
-            }
-        }
-
-        private Polyline CreateDrawingLine()
-        {
-            return new Polyline
-            {
-                Stroke = this.brush,
-                StrokeThickness = 20,
-                Effect = new BlurEffect
-                {
-                    Radius = 2
-                }
-            };
+            this.realPaintingSession.ClearCanvas(canvas);
         }
     }
 }

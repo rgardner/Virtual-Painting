@@ -75,7 +75,9 @@
     <Compile Include="DrawingBrush.xaml.cs">
       <DependentUpon>DrawingBrush.xaml</DependentUpon>
     </Compile>
-    <Compile Include="IPaintingSession.cs" />
+    <Compile Include="ImageSaverBackgroundWorker.cs" />
+    <Compile Include="PaintingSessions\IPaintingSession.cs" />
+    <Compile Include="PaintingSessions\LinePaintingSession.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -86,8 +88,8 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BasicPaintingSession.cs" />
-    <Compile Include="TestRunPaintingSession.cs" />
+    <Compile Include="PaintingSessions\BasicPaintingSession.cs" />
+    <Compile Include="PaintingSessions\TestRunPaintingSession.cs" />
     <Compile Include="VirtualPainting.xaml.cs">
       <DependentUpon>VirtualPainting.xaml</DependentUpon>
     </Compile>

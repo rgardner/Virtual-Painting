@@ -15,19 +15,21 @@ namespace KinectDrawing
             new SolidColorBrush(Color.FromRgb(223, 130, 182)),
         };
 
-        private int currentBrushIndex = 0;
-
-        public SolidColorBrush CurrentBrush => brushes[this.currentBrushIndex];
+        private int? currentBrushIndex = null;
 
         public SolidColorBrush Next()
         {
-            this.currentBrushIndex++;
-            if (this.currentBrushIndex == brushes.Length)
+            if ((this.currentBrushIndex == null) ||
+                (this.currentBrushIndex == (brushes.Length - 1)))
             {
                 this.currentBrushIndex = 0;
             }
+            else
+            {
+                this.currentBrushIndex++;
+            }
 
-            return this.CurrentBrush;
+            return brushes[this.currentBrushIndex.Value];
         }
     }
 }
