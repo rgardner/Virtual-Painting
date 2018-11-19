@@ -91,24 +91,24 @@ namespace KinectDrawing.PaintingSession
 
             this.backgroundWorker.DoWork += (s, e) =>
                 {
-                    var arguments = e.Argument as IList<object>;
-                    var backgroundWithPainting = arguments[0] as RenderTargetBitmap;
-                    var background = arguments[1] as RenderTargetBitmap;
-                    var parentDirectoryPath = arguments[2] as string;
+                    var arguments = (IList<object>)e.Argument;
+                    var backgroundWithPainting = (RenderTargetBitmap)arguments[0];
+                    var background = (RenderTargetBitmap)arguments[1];
+                    var parentDirectoryPath = (string)arguments[2];
 
-                    var directoryPath = System.IO.Path.Combine(parentDirectoryPath, DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss"));
+                    var directoryPath = Path.Combine(parentDirectoryPath, DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss"));
 
                     // Save the background with the painting
-                    string backgroundWithPaintingFilePath = System.IO.Path.Combine(directoryPath, "painting.png");
+                    string backgroundWithPaintingFilePath = Path.Combine(directoryPath, "painting.png");
                     Directory.CreateDirectory(directoryPath);
                     ImageSaverBackgroundWorker.SaveRenderTargetBitmapAsPng(backgroundWithPainting, backgroundWithPaintingFilePath);
 
                     // Save just the background
-                    string backgroundFilePath = System.IO.Path.Combine(directoryPath, "background.png");
+                    string backgroundFilePath = Path.Combine(directoryPath, "background.png");
                     ImageSaverBackgroundWorker.SaveRenderTargetBitmapAsPng(background, backgroundFilePath);
 
                     // Save the raw body frame data points
-                    string rawBodyFrameDataFilePath = System.IO.Path.Combine(directoryPath, "raw_body_frame_data.csv");
+                    string rawBodyFrameDataFilePath = Path.Combine(directoryPath, "raw_body_frame_data.csv");
                     var handFrameDataPointStrings = this.rawBodyFrameDataPoints.Select(d => d.ToCSV());
 
                     using (var file = new StreamWriter(rawBodyFrameDataFilePath))

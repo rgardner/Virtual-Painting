@@ -14,9 +14,9 @@ namespace KinectDrawing
         {
             this.backgroundWorker.DoWork += (s, e) =>
                 {
-                    var arguments = e.Argument as IList<object>;
-                    var image = arguments[0] as RenderTargetBitmap;
-                    var directoryPath = arguments[1] as string;
+                    var arguments = (IList<object>)e.Argument;
+                    var image = (RenderTargetBitmap)arguments[0];
+                    var directoryPath = (string)arguments[1];
 
                     string fileName = DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss") + ".png";
                     string fullPath = Path.Combine(directoryPath, fileName);
