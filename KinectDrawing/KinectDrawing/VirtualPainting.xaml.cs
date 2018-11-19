@@ -259,7 +259,6 @@ namespace KinectDrawing
                     })
                 .OnExit(t =>
                     {
-                        this.userPointer.Visibility = Visibility.Visible;
                         this.paintingSession.ClearCanvas(this.canvas);
                         this.paintingSession = null;
                     })
