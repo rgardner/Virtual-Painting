@@ -40,6 +40,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
@@ -79,7 +80,6 @@
     <Compile Include="UserPointer.xaml.cs">
       <DependentUpon>UserPointer.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ImageSaverBackgroundWorker.cs" />
     <Compile Include="PaintingSession\IPaintingSession.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -112,6 +112,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
@@ -140,6 +141,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\pointer.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\SavedImageFrame.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

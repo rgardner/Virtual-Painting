@@ -101,11 +101,11 @@ namespace KinectDrawing.PaintingSession
                     // Save the background with the painting
                     string backgroundWithPaintingFilePath = Path.Combine(directoryPath, "painting.png");
                     Directory.CreateDirectory(directoryPath);
-                    ImageSaverBackgroundWorker.SaveRenderTargetBitmapAsPng(backgroundWithPainting, backgroundWithPaintingFilePath);
+                    SaveRenderTargetBitmapAsPng(backgroundWithPainting, backgroundWithPaintingFilePath);
 
                     // Save just the background
                     string backgroundFilePath = Path.Combine(directoryPath, "background.png");
-                    ImageSaverBackgroundWorker.SaveRenderTargetBitmapAsPng(background, backgroundFilePath);
+                    SaveRenderTargetBitmapAsPng(background, backgroundFilePath);
 
                     // Save the raw body frame data points
                     string rawBodyFrameDataFilePath = Path.Combine(directoryPath, "raw_body_frame_data.csv");
@@ -156,6 +156,17 @@ namespace KinectDrawing.PaintingSession
             Debug.Assert(canvas.Children.Count > 1);
             var elementCountToRemove = canvas.Children.Count - 1;
             canvas.Children.RemoveRange(1, elementCountToRemove);
+        }
+
+        private static void SaveRenderTargetBitmapAsPng(RenderTargetBitmap rtb, string filePath)
+        {
+            BitmapEncoder pngEncoder = new PngBitmapEncoder();
+            pngEncoder.Frames.Add(BitmapFrame.Create(rtb));
+            using (var ms = new MemoryStream())
+            {
+                pngEncoder.Save(ms);
+                File.WriteAllBytes(filePath, ms.ToArray());
+            }
         }
     }
 }
