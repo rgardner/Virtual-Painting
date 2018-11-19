@@ -214,14 +214,14 @@ namespace KinectDrawing
 
                         this.currentBrush = this.brushColorCycler.Next();
                         this.paintingSession = CreatePaintingSession();
-                        this.brush.Visibility = Visibility.Visible;
+                        this.userPointer.Visibility = Visibility.Visible;
 
                         this.timer.Interval = new TimeSpan(0, 0, 15);
                         this.timer.Start();
                     })
                 .OnExit(t =>
                     {
-                        this.brush.Visibility = Visibility.Collapsed;
+                        this.userPointer.Visibility = Visibility.Collapsed;
                     })
                 .Permit(Trigger.TimerTick, State.SavingImage)
                 .Permit(Trigger.PersonLeaves, State.ConfirmingLeaving);
@@ -249,7 +249,7 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Saving image...");
-                        this.brush.Visibility = Visibility.Collapsed;
+                        this.userPointer.Visibility = Visibility.Collapsed;
                         this.overlay.Source = overlayImages[State.SavingImage];
 
                         this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height, GetSavedImagesDirectoryPath());
@@ -259,7 +259,7 @@ namespace KinectDrawing
                     })
                 .OnExit(t =>
                     {
-                        this.brush.Visibility = Visibility.Visible;
+                        this.userPointer.Visibility = Visibility.Visible;
                         this.paintingSession.ClearCanvas(this.canvas);
                         this.paintingSession = null;
                     })
@@ -315,7 +315,7 @@ namespace KinectDrawing
                     {
                         if (this.stateMachine.IsInState(State.Painting))
                         {
-                            DrawPointerIfNeeded(body.Joints[JointType.HandRight]);
+                            DrawUserPointerIfNeeded(body.Joints[JointType.HandRight]);
                             this.paintingSession.Paint(body, this.currentBrush, this.canvas);
                         }
 
@@ -336,7 +336,7 @@ namespace KinectDrawing
             }
         }
 
-        private void DrawPointerIfNeeded(Joint hand)
+        private void DrawUserPointerIfNeeded(Joint hand)
         {
             if (hand.TrackingState != TrackingState.NotTracked)
             {
@@ -348,8 +348,8 @@ namespace KinectDrawing
 
                 if (!float.IsInfinity(x) && !float.IsInfinity(y))
                 {
-                    Canvas.SetLeft(this.brush, x);
-                    Canvas.SetTop(this.brush, y);
+                    Canvas.SetLeft(this.userPointer, x);
+                    Canvas.SetTop(this.userPointer, y);
                 }
             }
         }
