@@ -13,14 +13,14 @@ namespace KinectDrawing
     {
         private readonly KinectSensor sensor;
         private readonly ImageSaverBackgroundWorker imageSaver = new ImageSaverBackgroundWorker();
-        private Point lastPoint;
+        private Point? lastPoint = null;
 
         public LinePaintingSession(KinectSensor sensor)
         {
             this.sensor = sensor;
         }
 
-        public void Paint(Body body, Brush brush, Canvas canvas, bool startNewSubSession)
+        public void Paint(Body body, Brush brush, Canvas canvas, bool _startNewSubSession)
         {
             var hand = body.Joints[JointType.HandRight];
             if (hand.TrackingState != TrackingState.NotTracked)
@@ -42,6 +42,7 @@ namespace KinectDrawing
                             Y1 = this.lastPoint.Y,
                             X2 = newPoint.X,
                             Y2 = newPoint.Y,
+                            Stroke = brush,
                             StrokeThickness = 20,
                             StrokeDashCap = PenLineCap.Round,
                             StrokeStartLineCap = PenLineCap.Round,
