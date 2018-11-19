@@ -200,7 +200,7 @@ namespace KinectDrawing
 
                         StopColorReader();
 
-                        this.timer.Interval = new TimeSpan(0, 0, 1);
+                        this.timer.Interval = new TimeSpan(0, 0, 2);
                         this.timer.Start();
                     })
                 .Permit(Trigger.TimerTick, State.Painting)
@@ -214,9 +214,14 @@ namespace KinectDrawing
 
                         this.currentBrush = this.brushColorCycler.Next();
                         this.paintingSession = CreatePaintingSession();
+                        this.brush.Visibility = Visibility.Visible;
 
                         this.timer.Interval = new TimeSpan(0, 0, 15);
                         this.timer.Start();
+                    })
+                .OnExit(t =>
+                    {
+                        this.brush.Visibility = Visibility.Collapsed;
                     })
                 .Permit(Trigger.TimerTick, State.SavingImage)
                 .Permit(Trigger.PersonLeaves, State.ConfirmingLeaving);
@@ -249,7 +254,7 @@ namespace KinectDrawing
 
                         this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height, GetSavedImagesDirectoryPath());
 
-                        this.timer.Interval = new TimeSpan(0, 0, 6);
+                        this.timer.Interval = new TimeSpan(0, 0, 7);
                         this.timer.Start();
                     })
                 .OnExit(t =>
@@ -308,9 +313,9 @@ namespace KinectDrawing
 
                     if (body != null)
                     {
-                        DrawCursorIfNeeded(body.Joints[JointType.HandRight]);
                         if (this.stateMachine.IsInState(State.Painting))
                         {
+                            DrawPointerIfNeeded(body.Joints[JointType.HandRight]);
                             this.paintingSession.Paint(body, this.currentBrush, this.canvas);
                         }
 
@@ -331,7 +336,7 @@ namespace KinectDrawing
             }
         }
 
-        private void DrawCursorIfNeeded(Joint hand)
+        private void DrawPointerIfNeeded(Joint hand)
         {
             if (hand.TrackingState != TrackingState.NotTracked)
             {
