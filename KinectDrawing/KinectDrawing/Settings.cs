@@ -13,7 +13,7 @@ namespace KinectDrawing
 
         public static string SavedImagesDirectoryPathEnvironmentVariableName = "VirtualPainting_SavedImagesDirectoryPath";
 
-        public static bool IsBodyPresenceDebugModeEnabled = true;
+        public static bool IsBodyPresenceDebugModeEnabled = false;
         public static bool IsTestModeEnabled = true;
 
     }
