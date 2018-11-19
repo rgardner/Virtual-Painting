@@ -6,6 +6,10 @@
              mc:Ignorable="d" 
              d:DesignHeight="100" d:DesignWidth="100">
     <Viewbox>
-        <Image Source="/Images/pointer.png" />
+        <Image Source="/Images/pointer.png">
+            <Image.RenderTransform>
+                <ScaleTransform ScaleX="0.75" ScaleY="0.75" />
+            </Image.RenderTransform>
+        </Image>
     </Viewbox>
 </UserControl>
