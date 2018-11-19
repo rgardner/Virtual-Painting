@@ -99,7 +99,8 @@ namespace KinectDrawing
                 this.width = this.sensor.ColorFrameSource.FrameDescription.Width;
                 this.height = this.sensor.ColorFrameSource.FrameDescription.Height;
 
-                EnsureStartedColorReader();
+                this.colorReader = this.sensor.ColorFrameSource.OpenReader();
+                this.colorReader.FrameArrived += ColorReader_FrameArrived;
 
                 this.bodyReader = this.sensor.BodyFrameSource.OpenReader();
                 this.bodyReader.FrameArrived += BodyReader_FrameArrived;
@@ -143,7 +144,7 @@ namespace KinectDrawing
                     {
                         Debug.WriteLine("Waiting for presence...");
                         this.overlay.Source = overlayImages[State.WaitingForPresence];
-                        EnsureStartedColorReader();
+                        this.colorReader.IsPaused = false;
                     })
                 .Permit(Trigger.PersonEnters, State.ConfirmingPresence);
 
@@ -197,7 +198,7 @@ namespace KinectDrawing
                         Debug.WriteLine("Flash!");
                         this.overlay.Source = overlayImages[State.Flash];
 
-                        StopColorReader();
+                        this.colorReader.IsPaused = true;
 
                         this.timer.Interval = new TimeSpan(0, 0, 2);
                         this.timer.Start();
@@ -270,24 +271,6 @@ namespace KinectDrawing
         {
             var random = new Random();
             return Settings.PaintBrushes[random.Next(Settings.PaintBrushes.Length)];
-        }
-
-        private void EnsureStartedColorReader()
-        {
-            if (this.colorReader == null)
-            {
-                this.colorReader = this.sensor.ColorFrameSource.OpenReader();
-                this.colorReader.FrameArrived += ColorReader_FrameArrived;
-            }
-
-            Contract.Ensures(this.colorReader != null);
-        }
-
-        private void StopColorReader()
-        {
-            this.colorReader?.Dispose();
-            this.colorReader = null;
-            Contract.Ensures(this.colorReader == null);
         }
 
         private void ColorReader_FrameArrived(object sender, ColorFrameArrivedEventArgs e)
