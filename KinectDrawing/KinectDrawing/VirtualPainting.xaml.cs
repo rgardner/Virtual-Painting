@@ -210,11 +210,11 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Painting...");
-                        this.currentBrush = this.brushColorCycler.Next();
+                        this.overlay.Source = overlayImages[State.Painting];
 
+                        this.currentBrush = this.brushColorCycler.Next();
                         this.paintingSession = CreatePaintingSession();
 
-                        this.overlay.Source = overlayImages[State.Painting];
                         this.timer.Interval = new TimeSpan(0, 0, 15);
                         this.timer.Start();
                     })
@@ -351,8 +351,8 @@ namespace KinectDrawing
 
         private IPaintingSession CreatePaintingSession()
         {
-            var realPaintingSession = new BasicPaintingSession(this.sensor);
-            //var realPaintingSession = new LinePaintingSession(this.sensor);
+            //var realPaintingSession = new BasicPaintingSession(this.sensor);
+            var realPaintingSession = new LinePaintingSession(this.sensor);
             return new TestRunPaintingSession(this.sensor, realPaintingSession);
         }
 
