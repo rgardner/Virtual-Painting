@@ -6,19 +6,19 @@ using Microsoft.Kinect;
 
 namespace KinectDrawing.PaintAlgorithm
 {
-    class RightHandLinePaintAlgorithm : IPaintAlgorithm
+    class HandTipRightLinePaintAlgorithm : IPaintAlgorithm
     {
         private readonly KinectSensor sensor;
         private Point? lastPoint = null;
 
-        public RightHandLinePaintAlgorithm(KinectSensor sensor)
+        public HandTipRightLinePaintAlgorithm(KinectSensor sensor)
         {
             this.sensor = sensor;
         }
 
         public void Paint(Body body, Brush brush, Canvas canvas, bool _startNewSubSession)
         {
-            var hand = body.Joints[JointType.HandRight];
+            var hand = body.Joints[JointType.HandTipRight];
             if (hand.TrackingState != TrackingState.NotTracked)
             {
                 CameraSpacePoint handPosition = hand.Position;

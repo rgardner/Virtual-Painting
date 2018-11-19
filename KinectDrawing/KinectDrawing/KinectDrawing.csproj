@@ -73,8 +73,9 @@
     <Compile Include="BrushColorCycler.cs" />
     <Compile Include="ConfigurationConstants.cs" />
     <Compile Include="PaintAlgorithm\IPaintAlgorithm.cs" />
-    <Compile Include="PaintAlgorithm\RightHandLinePaintAlgorithm.cs" />
-    <Compile Include="PaintAlgorithm\RightHandPolylinePaintAlgorithm.cs" />
+    <Compile Include="PaintAlgorithm\HandTipRightLinePaintAlgorithm.cs" />
+    <Compile Include="PaintAlgorithm\HandRightLinePaintAlgorithm.cs" />
+    <Compile Include="PaintAlgorithm\HandRightPolylinePaintAlgorithm.cs" />
     <Compile Include="UserPointer.xaml.cs">
       <DependentUpon>UserPointer.xaml</DependentUpon>
     </Compile>

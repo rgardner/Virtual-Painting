@@ -7,11 +7,11 @@ using Microsoft.Kinect;
 
 namespace KinectDrawing.PaintAlgorithm
 {
-    class RightHandPolylinePaintAlgorithm : IPaintAlgorithm
+    class HandRightPolylinePaintAlgorithm : IPaintAlgorithm
     {
         private readonly KinectSensor sensor;
 
-        public RightHandPolylinePaintAlgorithm(KinectSensor sensor)
+        public HandRightPolylinePaintAlgorithm(KinectSensor sensor)
         {
             this.sensor = sensor;
         }
