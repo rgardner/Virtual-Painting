@@ -58,7 +58,6 @@ namespace KinectDrawing
 
         private Rect bodyPresenceArea;
 
-        private BrushColorCycler brushColorCycler = new BrushColorCycler();
         private SolidColorBrush currentBrush;
         private IPaintingSession paintingSession = null;
         private static readonly IDictionary<State, BitmapImage> overlayImages = new Dictionary<State, BitmapImage>
@@ -212,7 +211,7 @@ namespace KinectDrawing
                         Debug.WriteLine("Painting...");
                         this.overlay.Source = overlayImages[State.Painting];
 
-                        this.currentBrush = this.brushColorCycler.Next();
+                        this.currentBrush = GetRandomBrush();
                         this.paintingSession = CreatePaintingSession();
                         this.userPointer.Visibility = Visibility.Visible;
 
@@ -265,6 +264,12 @@ namespace KinectDrawing
                     })
                 .Permit(Trigger.TimerTick, State.Painting)
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
+        }
+
+        private static SolidColorBrush GetRandomBrush()
+        {
+            var random = new Random();
+            return Settings.PaintBrushes[random.Next(Settings.PaintBrushes.Length)];
         }
 
         private void EnsureStartedColorReader()
@@ -404,7 +409,7 @@ namespace KinectDrawing
             return bodyRect.IntersectsWith(this.bodyPresenceArea);
         }
 
-        private void DrawRect(Rect rect, StackPanel stackPanel)
+        private static void DrawRect(Rect rect, StackPanel stackPanel)
         {
             stackPanel.Children.Clear();
 
