@@ -1,4 +1,6 @@
-﻿namespace KinectDrawing
+﻿using KinectDrawing.PaintAlgorithm;
+
+namespace KinectDrawing
 {
     static class ConfigurationConstants
     {
@@ -12,5 +14,7 @@
         public static string SavedImagesDirectoryPathEnvironmentVariableName = "VirtualPainting_SavedImagesDirectoryPath";
 
         public static bool IsTestModeEnabled = true;
+
+        public static System.Type PaintAlgorithm = typeof(HandRightLinePaintAlgorithm);
     }
 }

@@ -351,7 +351,7 @@ namespace KinectDrawing
 
         private IPaintingSession CreatePaintingSession()
         {
-            var paintAlgorithm = new HandRightLinePaintAlgorithm(this.sensor);
+            var paintAlgorithm = (IPaintAlgorithm)Activator.CreateInstance(ConfigurationConstants.PaintAlgorithm, this.sensor);
             if (ConfigurationConstants.IsTestModeEnabled)
             {
                 return new TestModePaintingSession(this.sensor, paintAlgorithm);
