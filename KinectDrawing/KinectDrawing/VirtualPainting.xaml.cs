@@ -112,12 +112,12 @@ namespace KinectDrawing
 
                 this.camera.Source = this.bitmap;
 
-                var frameX1 = ConfigurationConstants.BodyPresenceAreaLeftWidthRatio * this.width;
-                var frameY1 = ConfigurationConstants.BodyPresenceAreaTopHeightRatio * this.height;
-                var frameX2 = ConfigurationConstants.BodyPresenceAreaRightWidthRatio * this.width;
-                var frameY2 = ConfigurationConstants.BodyPresenceAreaBottomHeightRatio * this.height;
+                var frameX1 = Settings.BodyPresenceAreaLeftWidthRatio * this.width;
+                var frameY1 = Settings.BodyPresenceAreaTopHeightRatio * this.height;
+                var frameX2 = Settings.BodyPresenceAreaRightWidthRatio * this.width;
+                var frameY2 = Settings.BodyPresenceAreaBottomHeightRatio * this.height;
                 this.bodyPresenceArea = new Rect(frameX1, frameY1, frameX2 - frameX1, frameY2 - frameY1);
-                if (ConfigurationConstants.ShouldDisplayBodyPresenceAreas)
+                if (Settings.IsBodyPresenceDebugModeEnabled)
                 {
                     DrawRect(this.bodyPresenceArea, this.hitTestingFrame);
                 }
@@ -128,7 +128,7 @@ namespace KinectDrawing
 
         private string GetSavedImagesDirectoryPath()
         {
-            return Environment.GetEnvironmentVariable(ConfigurationConstants.SavedImagesDirectoryPathEnvironmentVariableName)
+            return Environment.GetEnvironmentVariable(Settings.SavedImagesDirectoryPathEnvironmentVariableName)
                 ?? Environment.CurrentDirectory;
         }
 
@@ -351,8 +351,8 @@ namespace KinectDrawing
 
         private IPaintingSession CreatePaintingSession()
         {
-            var paintAlgorithm = (IPaintAlgorithm)Activator.CreateInstance(ConfigurationConstants.PaintAlgorithm, this.sensor);
-            if (ConfigurationConstants.IsTestModeEnabled)
+            var paintAlgorithm = (IPaintAlgorithm)Activator.CreateInstance(Settings.PaintAlgorithm, this.sensor);
+            if (Settings.IsTestModeEnabled)
             {
                 return new TestModePaintingSession(this.sensor, paintAlgorithm);
             }
@@ -391,7 +391,7 @@ namespace KinectDrawing
 
             var bodyRect = new Rect(bodyX1, bodyY1, Math.Abs(bodyX2 - bodyX1), Math.Abs(bodyY2 - bodyY1));
 
-            if (ConfigurationConstants.ShouldDisplayBodyPresenceAreas)
+            if (Settings.IsBodyPresenceDebugModeEnabled)
             {
                 DrawRect(bodyRect, this.hitTestingBody);
             }

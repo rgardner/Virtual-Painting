@@ -2,9 +2,9 @@
 
 namespace KinectDrawing
 {
-    static class ConfigurationConstants
+    static class Settings
     {
-        public static bool ShouldDisplayBodyPresenceAreas = true;
+        public static System.Type PaintAlgorithm = typeof(HandRightLinePaintAlgorithm);
 
         public static double BodyPresenceAreaLeftWidthRatio = 0.28;
         public static double BodyPresenceAreaTopHeightRatio = 0.20;
@@ -13,8 +13,8 @@ namespace KinectDrawing
 
         public static string SavedImagesDirectoryPathEnvironmentVariableName = "VirtualPainting_SavedImagesDirectoryPath";
 
+        public static bool IsBodyPresenceDebugModeEnabled = true;
         public static bool IsTestModeEnabled = true;
 
-        public static System.Type PaintAlgorithm = typeof(HandRightLinePaintAlgorithm);
     }
 }

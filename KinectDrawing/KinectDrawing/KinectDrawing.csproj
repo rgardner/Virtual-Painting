@@ -71,7 +71,7 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="BrushColorCycler.cs" />
-    <Compile Include="ConfigurationConstants.cs" />
+    <Compile Include="Settings.cs" />
     <Compile Include="PaintAlgorithm\IPaintAlgorithm.cs" />
     <Compile Include="PaintAlgorithm\HandTipRightLinePaintAlgorithm.cs" />
     <Compile Include="PaintAlgorithm\HandRightLinePaintAlgorithm.cs" />
