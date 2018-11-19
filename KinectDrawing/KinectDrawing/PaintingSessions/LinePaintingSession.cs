@@ -28,18 +28,15 @@ namespace KinectDrawing
                 CameraSpacePoint handPosition = hand.Position;
                 ColorSpacePoint handPoint = this.sensor.CoordinateMapper.MapCameraPointToColorSpace(handPosition);
 
-                var x = handPoint.X;
-                var y = handPoint.Y;
-
-                if (!float.IsInfinity(x) && !float.IsInfinity(y))
+                if (!float.IsInfinity(handPoint.X) && !float.IsInfinity(handPoint.Y))
                 {
-                    var newPoint = new Point { X = x, Y = y };
+                    var newPoint = new Point { X = handPoint.X, Y = handPoint.Y };
                     if (this.lastPoint != null)
                     {
                         canvas.Children.Add(new Line
                         {
-                            X1 = this.lastPoint.X,
-                            Y1 = this.lastPoint.Y,
+                            X1 = this.lastPoint.Value.X,
+                            Y1 = this.lastPoint.Value.Y,
                             X2 = newPoint.X,
                             Y2 = newPoint.Y,
                             Stroke = brush,
@@ -47,10 +44,6 @@ namespace KinectDrawing
                             StrokeDashCap = PenLineCap.Round,
                             StrokeStartLineCap = PenLineCap.Round,
                             StrokeEndLineCap = PenLineCap.Round,
-                            Effect = new BlurEffect
-                            {
-                                Radius = 2
-                            },
                         });
                     }
 

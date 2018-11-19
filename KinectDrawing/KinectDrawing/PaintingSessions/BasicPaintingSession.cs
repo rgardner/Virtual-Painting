@@ -27,10 +27,7 @@ namespace KinectDrawing
                 CameraSpacePoint handPosition = hand.Position;
                 ColorSpacePoint handPoint = this.sensor.CoordinateMapper.MapCameraPointToColorSpace(handPosition);
 
-                var x = handPoint.X;
-                var y = handPoint.Y;
-
-                if (!float.IsInfinity(x) && !float.IsInfinity(y))
+                if (!float.IsInfinity(handPoint.X) && !float.IsInfinity(handPoint.Y))
                 {
                     if (startNewSubSession || (canvas.Children.Count == 1))
                     {
@@ -38,7 +35,7 @@ namespace KinectDrawing
                     }
 
                     var trail = canvas.Children[canvas.Children.Count - 1] as Polyline;
-                    trail.Points.Add(new Point { X = x, Y = y });
+                    trail.Points.Add(new Point { X = handPoint.X, Y = handPoint.Y });
                 }
             }
         }
