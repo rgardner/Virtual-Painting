@@ -2,7 +2,7 @@
 using System.Windows.Media;
 using Microsoft.Kinect;
 
-namespace KinectDrawing
+namespace KinectDrawing.PaintingSession
 {
     interface IPaintingSession
     {

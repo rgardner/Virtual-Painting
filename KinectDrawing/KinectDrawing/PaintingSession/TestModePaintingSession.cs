@@ -1,16 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using KinectDrawing.PaintAlgorithm;
 using Microsoft.Kinect;
 
-namespace KinectDrawing
+namespace KinectDrawing.PaintingSession
 {
-    class TestRunPaintingSession : IPaintingSession
+    class TestModePaintingSession : IPaintingSession
     {
         private class RawJointData
         {
@@ -75,17 +77,17 @@ namespace KinectDrawing
         }
 
         private readonly KinectSensor sensor;
-        private readonly IPaintingSession realPaintingSession;
+        private readonly IPaintAlgorithm paintAlgorithm;
         private Brush brush;
         private readonly BrushColorCycler brushColorCycler = new BrushColorCycler();
         private readonly BackgroundWorker backgroundWorker = new BackgroundWorker();
 
         private IList<RawBodyFrameData> rawBodyFrameDataPoints = new List<RawBodyFrameData>();
 
-        public TestRunPaintingSession(KinectSensor sensor, IPaintingSession realPaintingSession)
+        public TestModePaintingSession(KinectSensor sensor, IPaintAlgorithm paintAlgorithm)
         {
             this.sensor = sensor;
-            this.realPaintingSession = realPaintingSession;
+            this.paintAlgorithm = paintAlgorithm;
 
             this.backgroundWorker.DoWork += (s, e) =>
                 {
@@ -129,7 +131,7 @@ namespace KinectDrawing
                 this.brush = this.brushColorCycler.Next();
             }
 
-            realPaintingSession.Paint(body, this.brush, canvas, startNewSubSession);
+            this.paintAlgorithm.Paint(body, this.brush, canvas, startNewSubSession);
 
             // Log data points
             var frameData = new RawBodyFrameData(body, this.sensor);
@@ -151,7 +153,9 @@ namespace KinectDrawing
 
         public void ClearCanvas(Canvas canvas)
         {
-            this.realPaintingSession.ClearCanvas(canvas);
+            Debug.Assert(canvas.Children.Count > 1);
+            var elementCountToRemove = canvas.Children.Count - 1;
+            canvas.Children.RemoveRange(1, elementCountToRemove);
         }
     }
 }

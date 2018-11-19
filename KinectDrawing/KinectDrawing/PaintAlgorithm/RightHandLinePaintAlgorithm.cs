@@ -1,21 +1,17 @@
-﻿using System.Diagnostics.Contracts;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Media.Effects;
-using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using Microsoft.Kinect;
 
-namespace KinectDrawing
+namespace KinectDrawing.PaintAlgorithm
 {
-    class LinePaintingSession : IPaintingSession
+    class RightHandLinePaintAlgorithm : IPaintAlgorithm
     {
         private readonly KinectSensor sensor;
-        private readonly ImageSaverBackgroundWorker imageSaver = new ImageSaverBackgroundWorker();
         private Point? lastPoint = null;
 
-        public LinePaintingSession(KinectSensor sensor)
+        public RightHandLinePaintAlgorithm(KinectSensor sensor)
         {
             this.sensor = sensor;
         }
@@ -50,23 +46,6 @@ namespace KinectDrawing
                     this.lastPoint = newPoint;
                 }
             }
-        }
-
-        public void SavePainting(Image background, Canvas canvas, int width, int height, string directoryPath)
-        {
-            var rtb = new RenderTargetBitmap(width, height, 96d, 96d, PixelFormats.Default);
-            rtb.Render(background);
-            rtb.Render(canvas);
-            // TODO: add saved image filter to RenderTargetBitmap
-            rtb.Freeze(); // necessary for the backgroundWorker to access it
-            this.imageSaver.SaveImageAsync(rtb, directoryPath);
-        }
-
-        public void ClearCanvas(Canvas canvas)
-        {
-            Contract.Requires(canvas.Children.Count > 1);
-            var elementCountToRemove = canvas.Children.Count - 1;
-            canvas.Children.RemoveRange(1, elementCountToRemove);
         }
     }
 }

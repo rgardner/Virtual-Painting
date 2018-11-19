@@ -10,5 +10,7 @@
         public static double BodyPresenceAreaBottomHeightRatio = 0.97;
 
         public static string SavedImagesDirectoryPathEnvironmentVariableName = "VirtualPainting_SavedImagesDirectoryPath";
+
+        public static bool IsTestModeEnabled = true;
     }
 }

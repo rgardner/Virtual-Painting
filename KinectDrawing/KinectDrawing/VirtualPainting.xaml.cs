@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,6 +10,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using KinectDrawing.PaintAlgorithm;
+using KinectDrawing.PaintingSession;
 using Microsoft.Kinect;
 using Stateless;
 
@@ -351,10 +351,15 @@ namespace KinectDrawing
 
         private IPaintingSession CreatePaintingSession()
         {
-            //var realPaintingSession = new BasicPaintingSession(this.sensor);
-            var realPaintingSession = new LinePaintingSession(this.sensor);
-            return realPaintingSession;
-            //return new TestRunPaintingSession(this.sensor, realPaintingSession);
+            var paintAlgorithm = new RightHandLinePaintAlgorithm(this.sensor);
+            if (ConfigurationConstants.IsTestModeEnabled)
+            {
+                return new TestModePaintingSession(this.sensor, paintAlgorithm);
+            }
+            else
+            {
+                return new DefaultPaintingSession(this.sensor, paintAlgorithm);
+            }
         }
 
         /// <summary>

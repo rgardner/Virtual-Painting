@@ -72,12 +72,14 @@
     </Compile>
     <Compile Include="BrushColorCycler.cs" />
     <Compile Include="ConfigurationConstants.cs" />
+    <Compile Include="PaintAlgorithm\IPaintAlgorithm.cs" />
+    <Compile Include="PaintAlgorithm\RightHandLinePaintAlgorithm.cs" />
+    <Compile Include="PaintAlgorithm\RightHandPolylinePaintAlgorithm.cs" />
     <Compile Include="UserPointer.xaml.cs">
       <DependentUpon>UserPointer.xaml</DependentUpon>
     </Compile>
     <Compile Include="ImageSaverBackgroundWorker.cs" />
-    <Compile Include="PaintingSessions\IPaintingSession.cs" />
-    <Compile Include="PaintingSessions\LinePaintingSession.cs" />
+    <Compile Include="PaintingSession\IPaintingSession.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -88,8 +90,8 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PaintingSessions\BasicPaintingSession.cs" />
-    <Compile Include="PaintingSessions\TestRunPaintingSession.cs" />
+    <Compile Include="PaintingSession\DefaultPaintingSession.cs" />
+    <Compile Include="PaintingSession\TestModePaintingSession.cs" />
     <Compile Include="VirtualPainting.xaml.cs">
       <DependentUpon>VirtualPainting.xaml</DependentUpon>
     </Compile>
