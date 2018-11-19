@@ -343,8 +343,8 @@ namespace KinectDrawing
 
                 if (!float.IsInfinity(x) && !float.IsInfinity(y))
                 {
-                    Canvas.SetLeft(this.brush, x - this.brush.Width / 2.0);
-                    Canvas.SetTop(this.brush, y - this.brush.Height);
+                    Canvas.SetLeft(this.brush, x);
+                    Canvas.SetTop(this.brush, y);
                 }
             }
         }
@@ -353,7 +353,8 @@ namespace KinectDrawing
         {
             //var realPaintingSession = new BasicPaintingSession(this.sensor);
             var realPaintingSession = new LinePaintingSession(this.sensor);
-            return new TestRunPaintingSession(this.sensor, realPaintingSession);
+            return realPaintingSession;
+            //return new TestRunPaintingSession(this.sensor, realPaintingSession);
         }
 
         /// <summary>

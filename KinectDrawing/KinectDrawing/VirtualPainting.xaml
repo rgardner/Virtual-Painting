@@ -12,7 +12,7 @@
             <Grid>
                 <Image Name="camera" />
                 <Canvas Name="canvas">
-                    <local:DrawingBrush x:Name="brush" Width="300" Height="300" Canvas.Top="3" />
+                    <local:UserPointer x:Name="brush" Width="300" Height="300" Canvas.Top="3" />
                 </Canvas>
                 <Canvas Name="hitTestingCanvas">
                     <StackPanel Name="hitTestingFrame" />

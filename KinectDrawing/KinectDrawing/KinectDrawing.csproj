@@ -58,7 +58,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="DrawingBrush.xaml">
+    <Page Include="UserPointer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -72,8 +72,8 @@
     </Compile>
     <Compile Include="BrushColorCycler.cs" />
     <Compile Include="ConfigurationConstants.cs" />
-    <Compile Include="DrawingBrush.xaml.cs">
-      <DependentUpon>DrawingBrush.xaml</DependentUpon>
+    <Compile Include="UserPointer.xaml.cs">
+      <DependentUpon>UserPointer.xaml</DependentUpon>
     </Compile>
     <Compile Include="ImageSaverBackgroundWorker.cs" />
     <Compile Include="PaintingSessions\IPaintingSession.cs" />
@@ -134,6 +134,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\overlay_saved.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\pointer.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
