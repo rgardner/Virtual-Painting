@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:KinectDrawing"
-             mc:Ignorable="d" 
+             mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
 
     <Grid>
@@ -20,6 +20,25 @@
                 </Canvas>
             </Grid>
         </Viewbox>
-        <Image Name="overlay" Source="/Images/overlay_smile.png" />
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="0.3*" />
+                <RowDefinition />
+                <RowDefinition Height="0.1*" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.6*" />
+                <ColumnDefinition />
+                <ColumnDefinition Width="0.6*" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Row="0" Grid.ColumnSpan="3" Background="#2760A3">
+                <TextBlock Name="Header" HorizontalAlignment="Center" Text="Smile!" Foreground="#FFF" FontSize="50" />
+                <TextBlock Name="SubHeader" HorizontalAlignment="Center" Text="to capture a base layer image" Foreground="#999B9E" FontSize="20" />
+            </StackPanel>
+            <Rectangle Grid.Row="1" Grid.Column="0" Fill="#2760A3" />
+            <Rectangle Grid.Row="1" Grid.Column="2" Fill="#2760A3"/>
+            <Rectangle Grid.Row="2" Grid.ColumnSpan="3" Fill="#2760A3"/>
+        </Grid>
+        <Image Name="overlay" Source="/Images/overlay_smile.png" Visibility="Collapsed" />
     </Grid>
 </UserControl>
