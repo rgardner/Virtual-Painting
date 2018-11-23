@@ -236,6 +236,7 @@ namespace KinectDrawing
                 {
                     if (t.Destination == State.WaitingForPresence)
                     {
+                        this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height, GetSavedImagesDirectoryPath());
                         this.paintingSession.ClearCanvas(this.canvas);
                         this.paintingSession = null;
                     }
