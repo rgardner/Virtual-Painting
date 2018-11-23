@@ -12,6 +12,12 @@
 
     <!-- NOTE: Use WindowStyle="None" for full-screen. -->
 
+    <Window.Resources>
+        <Style TargetType="{x:Type TextBlock}">
+            <Setter Property="FontFamily" Value="Avenir LT Std 85 Heavy" />
+        </Style>
+    </Window.Resources>
+
     <Grid>
         <local:VirtualPainting />
     </Grid>
