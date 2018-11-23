@@ -42,6 +42,18 @@ namespace KinectDrawing
             SavingImage,
         };
 
+        private class Person
+        {
+            public Person(int bodyIndex, ulong trackingId)
+            {
+                this.BodyIndex = bodyIndex;
+                this.TrackingId = trackingId;
+            }
+
+            public int BodyIndex { get; private set; }
+            public ulong TrackingId { get; private set; }
+        }
+
         private readonly StateMachine<State, Trigger> stateMachine = new StateMachine<State, Trigger>(State.WaitingForPresence);
 
         private readonly DispatcherTimer timer = new DispatcherTimer();
@@ -60,7 +72,7 @@ namespace KinectDrawing
 
         private SolidColorBrush currentBrush;
         private IPaintingSession paintingSession = null;
-        private int? primaryBodyIndex = null;
+        private Person primaryPerson = null;
 
         public VirtualPainting()
         {
@@ -137,7 +149,7 @@ namespace KinectDrawing
                         this.subHeader.Text = "to capture a base layer image";
                         this.personOutline.Visibility = Visibility.Visible;
                         this.colorReader.IsPaused = false;
-                        this.primaryBodyIndex = null;
+                        this.primaryPerson = null;
                     })
                 .Permit(Trigger.PersonEnters, State.ConfirmingPresence);
 
@@ -297,7 +309,7 @@ namespace KinectDrawing
                 {
                     frame.GetAndRefreshBodyData(this.bodies);
 
-                    if (this.primaryBodyIndex == null)
+                    if (this.primaryPerson == null)
                     {
                         // If we are not tracking anyone, make the first tracked person in the
                         // frame the primary body.
@@ -306,8 +318,9 @@ namespace KinectDrawing
                             var body = this.bodies[i];
                             if (body != null && body.IsTracked && IsBodyInFrame(body))
                             {
-                                this.primaryBodyIndex = i;
+                                this.primaryPerson = new Person(i, body.TrackingId);
                                 this.stateMachine.Fire(Trigger.PersonEnters);
+                                break;
                             }
                         }
                     }
@@ -315,8 +328,8 @@ namespace KinectDrawing
                     {
                         // If we are tracking someone, check if they are still present and still in
                         // the frame.
-                        var primaryBody = this.bodies[this.primaryBodyIndex.Value];
-                        if (primaryBody != null && primaryBody.IsTracked)
+                        var primaryBody = this.bodies[this.primaryPerson.BodyIndex];
+                        if (primaryBody != null && primaryBody.TrackingId == this.primaryPerson.TrackingId && primaryBody.IsTracked)
                         {
                             if (this.stateMachine.IsInState(State.Painting))
                             {
