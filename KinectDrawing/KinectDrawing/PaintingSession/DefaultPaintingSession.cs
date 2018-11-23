@@ -33,6 +33,7 @@ namespace KinectDrawing.PaintingSession
                     var width = (int)arguments[1];
                     var height = (int)arguments[2];
                     var directoryPath = (string)arguments[3];
+                    var originalRtb = (RenderTargetBitmap)arguments[4];
 
                     var image = new Bitmap(width, height);
                     Bitmap painting = RenderTargetBitmapToBitmap(rtb);
@@ -43,10 +44,14 @@ namespace KinectDrawing.PaintingSession
                         gr.DrawImage(overlay, new System.Drawing.Point(0, 0));
                     }
 
-                    string fileName = DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss") + ".png";
+                    string currentTime = DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss");
+                    string fileName = currentTime + ".png";
                     string fullPath = Path.Combine(directoryPath, fileName);
                     Directory.CreateDirectory(directoryPath);
                     image.Save(fullPath, ImageFormat.Png);
+
+                    string backgroundFilePath = Path.Combine(directoryPath, currentTime + "_original.png");
+                    SaveRenderTargetBitmapAsPng(originalRtb, backgroundFilePath);
                 };
         }
 
@@ -61,7 +66,10 @@ namespace KinectDrawing.PaintingSession
             rtb.Render(background);
             rtb.Render(canvas);
             rtb.Freeze();
-            this.backgroundWorker.RunWorkerAsync(new List<object> { rtb, width, height, directoryPath });
+            var backgroundRtb = new RenderTargetBitmap(width, height, 96d, 96d, PixelFormats.Default);
+            backgroundRtb.Render(background);
+            backgroundRtb.Freeze();
+            this.backgroundWorker.RunWorkerAsync(new List<object> { rtb, width, height, directoryPath, backgroundRtb });
         }
 
         public void ClearCanvas(Canvas canvas)
@@ -82,6 +90,17 @@ namespace KinectDrawing.PaintingSession
 
             bitmap.UnlockBits(bitmapData);
             return bitmap;
+        }
+
+        private static void SaveRenderTargetBitmapAsPng(RenderTargetBitmap rtb, string filePath)
+        {
+            BitmapEncoder pngEncoder = new PngBitmapEncoder();
+            pngEncoder.Frames.Add(BitmapFrame.Create(rtb));
+            using (var ms = new MemoryStream())
+            {
+                pngEncoder.Save(ms);
+                File.WriteAllBytes(filePath, ms.ToArray());
+            }
         }
     }
 }
