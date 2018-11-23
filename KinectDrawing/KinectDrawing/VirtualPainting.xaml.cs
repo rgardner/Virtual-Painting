@@ -60,7 +60,7 @@ namespace KinectDrawing
 
         private SolidColorBrush currentBrush;
         private IPaintingSession paintingSession = null;
-        private ulong? primaryBodyTrackingId = null;
+        private int? primaryBodyIndex = null;
 
         public VirtualPainting()
         {
@@ -137,7 +137,7 @@ namespace KinectDrawing
                         this.subHeader.Text = "to capture a base layer image";
                         this.personOutline.Visibility = Visibility.Visible;
                         this.colorReader.IsPaused = false;
-                        this.primaryBodyTrackingId = null;
+                        this.primaryBodyIndex = null;
                     })
                 .Permit(Trigger.PersonEnters, State.ConfirmingPresence);
 
@@ -297,31 +297,34 @@ namespace KinectDrawing
                 {
                     frame.GetAndRefreshBodyData(this.bodies);
 
-                    if (this.primaryBodyTrackingId == null)
+                    if (this.primaryBodyIndex == null)
                     {
                         // If we are not tracking anyone, make the first tracked person in the
                         // frame the primary body.
-                        var body = this.bodies.Where(b => b.IsTracked && IsBodyInFrame(b)).FirstOrDefault();
-                        if (body != null)
+                        for (int i = 0; i < this.bodies.Count; i++)
                         {
-                            this.primaryBodyTrackingId = body.TrackingId;
-                            this.stateMachine.Fire(Trigger.PersonEnters);
+                            var body = this.bodies[i];
+                            if (body != null && body.IsTracked && IsBodyInFrame(body))
+                            {
+                                this.primaryBodyIndex = i;
+                                this.stateMachine.Fire(Trigger.PersonEnters);
+                            }
                         }
                     }
                     else
                     {
                         // If we are tracking someone, check if they are still present and still in
                         // the frame.
-                        var body = this.bodies.Where(b => b.IsTracked && b.TrackingId == this.primaryBodyTrackingId).FirstOrDefault();
-                        if (body != null)
+                        var primaryBody = this.bodies[this.primaryBodyIndex.Value];
+                        if (primaryBody != null && primaryBody.IsTracked)
                         {
                             if (this.stateMachine.IsInState(State.Painting))
                             {
-                                DrawUserPointerIfNeeded(body.Joints[JointType.HandRight]);
-                                this.paintingSession.Paint(body, this.currentBrush, this.canvas);
+                                DrawUserPointerIfNeeded(primaryBody.Joints[JointType.HandRight]);
+                                this.paintingSession.Paint(primaryBody, this.currentBrush, this.canvas);
                             }
 
-                            var isPrimaryBodyInFrame = IsBodyInFrame(body);
+                            var isPrimaryBodyInFrame = IsBodyInFrame(primaryBody);
                             if (this.stateMachine.IsInState(State.ConfirmingLeaving))
                             {
                                 if (isPrimaryBodyInFrame)
