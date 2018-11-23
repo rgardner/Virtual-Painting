@@ -60,6 +60,7 @@ namespace KinectDrawing
 
         private SolidColorBrush currentBrush;
         private IPaintingSession paintingSession = null;
+        private ulong? primaryBodyTrackingId = null;
 
         public VirtualPainting()
         {
@@ -136,6 +137,7 @@ namespace KinectDrawing
                         this.subHeader.Text = "to capture a base layer image";
                         this.personOutline.Visibility = Visibility.Visible;
                         this.colorReader.IsPaused = false;
+                        this.primaryBodyTrackingId = null;
                     })
                 .Permit(Trigger.PersonEnters, State.ConfirmingPresence);
 
@@ -294,25 +296,44 @@ namespace KinectDrawing
                 {
                     frame.GetAndRefreshBodyData(this.bodies);
 
-                    Body body = this.bodies.Where(b => b.IsTracked).FirstOrDefault();
-
-                    if (body != null)
+                    if (this.primaryBodyTrackingId == null)
                     {
-                        if (this.stateMachine.IsInState(State.Painting))
+                        // If we are not tracking anyone, make the first tracked person in the
+                        // frame the primary body.
+                        var body = this.bodies.Where(b => b.IsTracked && IsBodyInFrame(b)).FirstOrDefault();
+                        if (body != null)
                         {
-                            DrawUserPointerIfNeeded(body.Joints[JointType.HandRight]);
-                            this.paintingSession.Paint(body, this.currentBrush, this.canvas);
+                            this.primaryBodyTrackingId = body.TrackingId;
+                            this.stateMachine.Fire(Trigger.PersonEnters);
                         }
-
-                        var bodyIsInFrame = BodyIsInFrame(body);
-                        if (this.stateMachine.IsInState(State.WaitingForPresence) || this.stateMachine.IsInState(State.ConfirmingLeaving))
+                    }
+                    else
+                    {
+                        // If we are tracking someone, check if they are still present and still in
+                        // the frame.
+                        var body = this.bodies.Where(b => b.IsTracked && b.TrackingId == this.primaryBodyTrackingId).FirstOrDefault();
+                        if (body != null)
                         {
-                            if (bodyIsInFrame)
+                            if (this.stateMachine.IsInState(State.Painting))
                             {
-                                this.stateMachine.Fire(Trigger.PersonEnters);
+                                DrawUserPointerIfNeeded(body.Joints[JointType.HandRight]);
+                                this.paintingSession.Paint(body, this.currentBrush, this.canvas);
+                            }
+
+                            var isPrimaryBodyInFrame = IsBodyInFrame(body);
+                            if (this.stateMachine.IsInState(State.ConfirmingLeaving))
+                            {
+                                if (isPrimaryBodyInFrame)
+                                {
+                                    this.stateMachine.Fire(Trigger.PersonEnters);
+                                }
+                            }
+                            else if (!isPrimaryBodyInFrame)
+                            {
+                                this.stateMachine.Fire(Trigger.PersonLeaves);
                             }
                         }
-                        else if (!bodyIsInFrame)
+                        else
                         {
                             this.stateMachine.Fire(Trigger.PersonLeaves);
                         }
@@ -357,7 +378,7 @@ namespace KinectDrawing
         /// </summary>
         /// <param name="body"></param>
         /// <returns></returns>
-        private bool BodyIsInFrame(Body body)
+        private bool IsBodyInFrame(Body body)
         {
             Joint shoulderLeft = body.Joints[JointType.ShoulderLeft];
             Joint shoulderRight = body.Joints[JointType.ShoulderRight];

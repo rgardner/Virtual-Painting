@@ -74,7 +74,6 @@ namespace KinectDrawing.PaintingSession
 
         public void ClearCanvas(Canvas canvas)
         {
-            Debug.Assert(canvas.Children.Count > 1);
             var elementCountToRemove = canvas.Children.Count - 1;
             canvas.Children.RemoveRange(1, elementCountToRemove);
         }
