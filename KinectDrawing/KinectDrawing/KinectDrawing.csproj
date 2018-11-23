@@ -59,6 +59,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="PersonOutline.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="UserPointer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -72,6 +76,9 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="BrushColorCycler.cs" />
+    <Compile Include="PersonOutline.xaml.cs">
+      <DependentUpon>PersonOutline.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Settings.cs" />
     <Compile Include="PaintAlgorithm\IPaintAlgorithm.cs" />
     <Compile Include="PaintAlgorithm\HandTipRightLinePaintAlgorithm.cs" />
@@ -125,25 +132,13 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\overlay_countdown1.png" />
-    <Resource Include="Images\overlay_countdown2.png" />
-    <Resource Include="Images\overlay_countdown3.png" />
-    <Resource Include="Images\overlay_flash.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\overlay_smile.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\overlay_paint.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\overlay_saved.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Images\pointer.png" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\SavedImageFrame.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\person_outline.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

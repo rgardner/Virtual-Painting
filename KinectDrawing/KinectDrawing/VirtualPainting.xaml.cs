@@ -36,7 +36,7 @@ namespace KinectDrawing
             Countdown3,
             Countdown2,
             Countdown1,
-            Flash,
+            Snapshot,
             Painting,
             ConfirmingLeaving,
             SavingImage,
@@ -60,17 +60,6 @@ namespace KinectDrawing
 
         private SolidColorBrush currentBrush;
         private IPaintingSession paintingSession = null;
-        private static readonly IDictionary<State, BitmapImage> overlayImages = new Dictionary<State, BitmapImage>
-        {
-            [State.WaitingForPresence] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_smile.PNG")),
-            [State.ConfirmingPresence] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_smile.PNG")),
-            [State.Countdown3] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_countdown3.PNG")),
-            [State.Countdown2] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_countdown2.PNG")),
-            [State.Countdown1] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_countdown1.PNG")),
-            [State.Flash] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_flash.PNG")),
-            [State.Painting] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_paint.PNG")),
-            [State.SavingImage] = new BitmapImage(new Uri(@"pack://application:,,,/Images/overlay_saved.PNG"))
-        };
 
         public VirtualPainting()
         {
@@ -143,7 +132,9 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Waiting for presence...");
-                        this.overlay.Source = overlayImages[State.WaitingForPresence];
+                        this.header.Text = "Smile!";
+                        this.subHeader.Text = "to capture a base layer image";
+                        this.personOutline.Visibility = Visibility.Visible;
                         this.colorReader.IsPaused = false;
                     })
                 .Permit(Trigger.PersonEnters, State.ConfirmingPresence);
@@ -152,7 +143,6 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Confirming presence...");
-                        this.overlay.Source = overlayImages[State.ConfirmingPresence];
                         this.timer.Interval = new TimeSpan(0, 0, 2);
                         this.timer.Start();
                     })
@@ -163,7 +153,8 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("3...");
-                        this.overlay.Source = overlayImages[State.Countdown3];
+                        this.countdownValue.Text = "3";
+                        this.countdownValue.Visibility = Visibility.Visible;
                         this.timer.Interval = new TimeSpan(0, 0, 1);
                         this.timer.Start();
                     })
@@ -174,7 +165,7 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("2...");
-                        this.overlay.Source = overlayImages[State.Countdown2];
+                        this.countdownValue.Text = "2";
                         this.timer.Interval = new TimeSpan(0, 0, 1);
                         this.timer.Start();
                     })
@@ -185,18 +176,23 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("1...");
-                        this.overlay.Source = overlayImages[State.Countdown1];
+                        this.countdownValue.Text = "1";
                         this.timer.Interval = new TimeSpan(0, 0, 1);
                         this.timer.Start();
                     })
-                .Permit(Trigger.TimerTick, State.Flash)
+                .OnExit(t =>
+                    {
+                        this.countdownValue.Visibility = Visibility.Collapsed;
+                    })
+                .Permit(Trigger.TimerTick, State.Snapshot)
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
 
-            this.stateMachine.Configure(State.Flash)
+            this.stateMachine.Configure(State.Snapshot)
                 .OnEntry(t =>
                     {
-                        Debug.WriteLine("Flash!");
-                        this.overlay.Source = overlayImages[State.Flash];
+                        Debug.WriteLine("Snapshot!");
+                        this.header.Text = "Snapshot!";
+                        this.personOutline.Visibility = Visibility.Collapsed;
 
                         this.colorReader.IsPaused = true;
 
@@ -210,7 +206,8 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Painting...");
-                        this.overlay.Source = overlayImages[State.Painting];
+                        this.header.Text = "Construct";
+                        this.subHeader.Text = "a new identity with paint";
 
                         this.currentBrush = GetRandomBrush();
                         this.paintingSession = CreatePaintingSession();
@@ -250,7 +247,8 @@ namespace KinectDrawing
                     {
                         Debug.WriteLine("Saving image...");
                         this.userPointer.Visibility = Visibility.Collapsed;
-                        this.overlay.Source = overlayImages[State.SavingImage];
+                        this.header.Text = "Saved";
+                        this.subHeader.Text = "to the iPad for future reference";
 
                         this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height, GetSavedImagesDirectoryPath());
 

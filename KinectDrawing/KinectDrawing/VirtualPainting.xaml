@@ -32,13 +32,18 @@
                 <ColumnDefinition Width="0.6*" />
             </Grid.ColumnDefinitions>
             <StackPanel Grid.Row="0" Grid.ColumnSpan="3" Background="#2760A3">
-                <TextBlock Name="Header" HorizontalAlignment="Center" Text="Smile!" Foreground="#FFF" FontSize="50" />
-                <TextBlock Name="SubHeader" HorizontalAlignment="Center" Text="to capture a base layer image" Foreground="#999B9E" FontSize="20" />
+                <TextBlock Name="header" HorizontalAlignment="Center" Text="Smile!" Foreground="#FFF" FontSize="100" />
+                <TextBlock Name="subHeader" HorizontalAlignment="Center" Text="to capture a base layer image" Foreground="#999B9E" FontSize="50" />
             </StackPanel>
             <Rectangle Grid.Row="1" Grid.Column="0" Fill="#2760A3" />
+            <Grid Grid.Row="1" Grid.Column="1">
+                <Viewbox>
+                    <local:PersonOutline x:Name="personOutline" Width="600" Height="500" Margin="-200,0,0,0"/>
+                </Viewbox>
+                <TextBlock Name="countdownValue" Text="3" FontSize="50" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="Collapsed" />
+            </Grid>
             <Rectangle Grid.Row="1" Grid.Column="2" Fill="#2760A3"/>
             <Rectangle Grid.Row="2" Grid.ColumnSpan="3" Fill="#2760A3"/>
         </Grid>
-        <Image Name="overlay" Source="/Images/overlay_smile.png" Visibility="Collapsed" />
     </Grid>
 </UserControl>
