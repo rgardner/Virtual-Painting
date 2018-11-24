@@ -266,7 +266,6 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Saving image...");
-                        this.userPointer.Visibility = Visibility.Collapsed;
                         this.header.Text = "Saved";
                         this.subHeader.Text = "to the iPad for future reference";
 
