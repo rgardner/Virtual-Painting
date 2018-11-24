@@ -440,14 +440,13 @@ namespace KinectDrawing
                 return false;
             }
 
-            var bodyRect = new Rect(bodyX1, bodyY1, Math.Abs(bodyX2 - bodyX1), Math.Abs(bodyY2 - bodyY1));
-
             if (Settings.IsBodyPresenceDebugModeEnabled)
             {
+                var bodyRect = new Rect(bodyX1, bodyY1, Math.Abs(bodyX2 - bodyX1), Math.Abs(bodyY2 - bodyY1));
                 DrawRect(bodyRect, this.hitTestingBody);
             }
 
-            return bodyRect.IntersectsWith(this.bodyPresenceArea);
+            return this.bodyPresenceArea.Contains(bodyX1, bodyY1) && this.bodyPresenceArea.Contains(bodyX2, bodyY2);
         }
 
         private static void DrawRect(Rect rect, StackPanel stackPanel)
