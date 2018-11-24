@@ -38,6 +38,7 @@ namespace KinectDrawing
             Countdown2,
             Countdown1,
             Snapshot,
+            HandPickup,
             Painting,
             ConfirmingLeaving,
             SavingImage,
@@ -229,16 +230,35 @@ namespace KinectDrawing
                         this.timer.Interval = new TimeSpan(0, 0, 2);
                         this.timer.Start();
                     })
-                .Permit(Trigger.TimerTick, State.Painting)
+                .Permit(Trigger.TimerTick, State.HandPickup)
                 .Ignore(Trigger.PersonLeaves);
+
+            this.stateMachine.Configure(State.HandPickup)
+                .OnEntry(t =>
+                    {
+                        Debug.WriteLine("Waiting for hand to enter frame...");
+                        this.header.Text = "Construct";
+                        this.subHeader.Text = "a new identity with paint";
+                        this.userPointer.Visibility = Visibility.Visible;
+
+                        // Do not start the timer, this will be started in BodyReader_FrameArrived
+                        // when the user pointer has entered the canvas.
+                        this.timer.Interval = new TimeSpan(0, 0, 1);
+                    })
+                .OnExit(t =>
+                    {
+                        if (t.Destination != State.Painting)
+                        {
+                            this.userPointer.Visibility = Visibility.Collapsed;
+                        }
+                    })
+                .Permit(Trigger.TimerTick, State.Painting)
+                .Permit(Trigger.PersonLeaves, State.ConfirmingLeaving);
 
             this.stateMachine.Configure(State.Painting)
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Painting...");
-                        this.header.Text = "Construct";
-                        this.subHeader.Text = "a new identity with paint";
-
                         this.currentBrush = GetRandomBrush();
                         this.paintingSession = CreatePaintingSession();
                         this.userPointer.Visibility = Visibility.Visible;
@@ -262,7 +282,8 @@ namespace KinectDrawing
                     })
                 .OnExit(t =>
                 {
-                    if (t.Destination == State.WaitingForPresence)
+                    // Save the painting session if one exists
+                    if ((t.Destination == State.WaitingForPresence) && (this.paintingSession != null))
                     {
                         this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height, GetSavedImagesDirectoryPath());
                         this.paintingSession.ClearCanvas(this.canvas);
@@ -291,7 +312,7 @@ namespace KinectDrawing
                         this.paintingSession.ClearCanvas(this.canvas);
                         this.paintingSession = null;
                     })
-                .Permit(Trigger.TimerTick, State.Painting)
+                .Permit(Trigger.TimerTick, State.HandPickup)
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
         }
 
@@ -354,10 +375,21 @@ namespace KinectDrawing
                         var primaryBody = this.bodies[this.primaryPerson.BodyIndex];
                         if (primaryBody != null && primaryBody.TrackingId == this.primaryPerson.TrackingId && primaryBody.IsTracked)
                         {
-                            if (this.stateMachine.IsInState(State.Painting))
+                            if (this.stateMachine.IsInState(State.HandPickup) || this.stateMachine.IsInState(State.Painting))
                             {
                                 DrawUserPointerIfNeeded(primaryBody.Joints[JointType.HandRight]);
-                                this.paintingSession.Paint(primaryBody, this.currentBrush, this.canvas);
+                                if (this.stateMachine.IsInState(State.HandPickup))
+                                {
+                                    if (!this.timer.IsEnabled && IsJointInCanvasView(primaryBody.Joints[JointType.HandRight]))
+                                    {
+                                        Debug.WriteLine("Hand entered frame");
+                                        this.timer.Start();
+                                    }
+                                }
+                                else if (this.stateMachine.IsInState(State.Painting))
+                                {
+                                    this.paintingSession.Paint(primaryBody, this.currentBrush, this.canvas);
+                                }
                             }
 
                             var isPrimaryBodyInFrame = IsBodyInFrame(primaryBody);
@@ -447,6 +479,31 @@ namespace KinectDrawing
             }
 
             return this.bodyPresenceArea.Contains(bodyX1, bodyY1) && this.bodyPresenceArea.Contains(bodyX2, bodyY2);
+        }
+
+        /// <summary>
+        /// Determines if the given joint is over the visible portion of the canvas.
+        /// </summary>
+        /// <param name="joint"></param>
+        /// <returns></returns>
+        private bool IsJointInCanvasView(Joint joint)
+        {
+            if (joint.TrackingState == TrackingState.NotTracked)
+            {
+                return false;
+            }
+
+            ColorSpacePoint jointPoint = this.sensor.CoordinateMapper.MapCameraPointToColorSpace(joint.Position);
+            if (float.IsInfinity(jointPoint.X) || float.IsInfinity(jointPoint.Y))
+            {
+                return false;
+            }
+
+            Point canvasViewTopLeft = this.canvasView.TranslatePoint(new Point(), this);
+            Point canvasViewBottomRight = this.canvasView.TranslatePoint(new Point(this.canvasView.ActualWidth, this.canvasView.ActualHeight), this);
+            var canvasViewRect = new Rect(canvasViewTopLeft, canvasViewBottomRight);
+            DrawRect(canvasViewRect, this.hitTestingBody);
+            return canvasViewRect.Contains(jointPoint.X, jointPoint.Y);
         }
 
         private static void DrawRect(Rect rect, StackPanel stackPanel)
