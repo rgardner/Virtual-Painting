@@ -207,11 +207,16 @@ namespace KinectDrawing
                         Debug.WriteLine("Snapshot!");
                         this.header.Text = "Snapshot!";
                         this.personOutline.Visibility = Visibility.Collapsed;
+                        this.flashOverlay.Visibility = Visibility.Visible;
 
                         this.colorReader.IsPaused = true;
 
                         this.timer.Interval = new TimeSpan(0, 0, 2);
                         this.timer.Start();
+                    })
+                .OnExit(t =>
+                    {
+                        this.flashOverlay.Visibility = Visibility.Collapsed;
                     })
                 .Permit(Trigger.TimerTick, State.Painting)
                 .Ignore(Trigger.PersonLeaves);
