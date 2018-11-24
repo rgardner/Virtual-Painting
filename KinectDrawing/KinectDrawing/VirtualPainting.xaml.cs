@@ -158,7 +158,7 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Confirming presence...");
-                        this.timer.Interval = new TimeSpan(0, 0, 2);
+                        this.timer.Interval = new TimeSpan(0, 0, 1);
                         this.timer.Start();
                     })
                 .Permit(Trigger.TimerTick, State.Countdown3)
