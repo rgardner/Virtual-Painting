@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using System.Windows.Input;
 
 namespace KinectDrawing
 {
@@ -10,6 +11,7 @@ namespace KinectDrawing
         public MainWindow()
         {
             InitializeComponent();
+            this.Cursor = Cursors.None;
         }
     }
 }
