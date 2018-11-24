@@ -173,6 +173,13 @@ namespace KinectDrawing
                         this.timer.Interval = new TimeSpan(0, 0, 1);
                         this.timer.Start();
                     })
+                .OnExit(t =>
+                    {
+                        if (t.Destination == State.WaitingForPresence)
+                        {
+                            this.countdownValue.Visibility = Visibility.Collapsed;
+                        }
+                    })
                 .Permit(Trigger.TimerTick, State.Countdown2)
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
 
@@ -183,6 +190,13 @@ namespace KinectDrawing
                         this.countdownValue.Text = "2";
                         this.timer.Interval = new TimeSpan(0, 0, 1);
                         this.timer.Start();
+                    })
+                .OnExit(t =>
+                    {
+                        if (t.Destination == State.WaitingForPresence)
+                        {
+                            this.countdownValue.Visibility = Visibility.Collapsed;
+                        }
                     })
                 .Permit(Trigger.TimerTick, State.Countdown1)
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
