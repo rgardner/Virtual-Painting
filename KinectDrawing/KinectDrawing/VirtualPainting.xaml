@@ -36,14 +36,16 @@
                 <TextBlock Name="header" HorizontalAlignment="Center" Text="Smile!" Foreground="#FFF" FontSize="100" />
                 <TextBlock Name="subHeader" HorizontalAlignment="Center" Text="to capture a base layer image" Foreground="#999B9E" FontSize="50" />
             </StackPanel>
-            <Rectangle Grid.Row="1" Grid.Column="0" Fill="#2760A3" />
             <Grid Grid.Row="1" Grid.Column="1">
                 <Viewbox>
                     <local:PersonOutline x:Name="personOutline" Width="600" Height="500" Margin="-200,0,0,0"/>
                 </Viewbox>
                 <TextBlock Name="countdownValue" Text="3" FontSize="100" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity=".75" Visibility="Collapsed" Foreground="#2760A3" />
             </Grid>
-            <Rectangle Grid.Row="1" Grid.Column="2" Fill="#2760A3"/>
+            <!-- Span all 3 rows to avoid visual artifacts (white lines) from the camera feed. -->
+            <Rectangle Grid.RowSpan="3" Grid.Column="0" Fill="#2760A3" />
+            <Rectangle Grid.RowSpan="3" Grid.Column="2" Fill="#2760A3"/>
+
             <Rectangle Grid.Row="2" Grid.ColumnSpan="3" Fill="#2760A3"/>
         </Grid>
         <Image Source="/Images/logo.png" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="200" Margin="10,10,-10,-10" />
