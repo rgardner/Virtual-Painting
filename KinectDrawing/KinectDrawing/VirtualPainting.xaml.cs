@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using System.Windows.Threading;
@@ -207,16 +208,12 @@ namespace KinectDrawing
                         Debug.WriteLine("Snapshot!");
                         this.header.Text = "Snapshot!";
                         this.personOutline.Visibility = Visibility.Collapsed;
-                        this.flashOverlay.Visibility = Visibility.Visible;
+                        FlashWindow();
 
                         this.colorReader.IsPaused = true;
 
                         this.timer.Interval = new TimeSpan(0, 0, 2);
                         this.timer.Start();
-                    })
-                .OnExit(t =>
-                    {
-                        this.flashOverlay.Visibility = Visibility.Collapsed;
                     })
                 .Permit(Trigger.TimerTick, State.Painting)
                 .Ignore(Trigger.PersonLeaves);
@@ -269,6 +266,7 @@ namespace KinectDrawing
                         this.header.Text = "Saved";
                         this.subHeader.Text = "to the iPad for future reference";
 
+                        FlashWindow();
                         this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height, GetSavedImagesDirectoryPath());
 
                         this.timer.Interval = new TimeSpan(0, 0, 7);
@@ -281,6 +279,13 @@ namespace KinectDrawing
                     })
                 .Permit(Trigger.TimerTick, State.Painting)
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
+        }
+
+        private void FlashWindow()
+        {
+            var sb = (Storyboard)FindResource("FlashAnimation");
+            Storyboard.SetTarget(sb, this.flashOverlay);
+            sb.Begin();
         }
 
         private static SolidColorBrush GetRandomBrush()

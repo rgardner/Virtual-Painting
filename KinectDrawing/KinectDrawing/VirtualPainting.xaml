@@ -7,6 +7,12 @@
              mc:Ignorable="d"
              d:DesignHeight="1080" d:DesignWidth="1920">
 
+    <UserControl.Resources>
+        <Storyboard x:Key="FlashAnimation" Storyboard.TargetProperty="Opacity">
+            <DoubleAnimation From="0.0" To="1.0" Duration="0:0:0.2" AutoReverse="True" RepeatBehavior="1x" />
+        </Storyboard>
+    </UserControl.Resources>
+
     <Grid>
         <Viewbox>
             <Grid>
@@ -41,7 +47,7 @@
                     <local:PersonOutline x:Name="personOutline" Width="600" Height="500" Margin="-200,0,0,0"/>
                 </Viewbox>
                 <TextBlock Name="countdownValue" Text="3" FontSize="100" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity=".75" Visibility="Collapsed" Foreground="#2760A3" />
-                <Rectangle Name="flashOverlay" Fill="White" Opacity="0.7" Visibility="Collapsed" />
+                <Rectangle Name="flashOverlay" Fill="White" Opacity="0" />
             </Grid>
             <!-- Span all 3 rows to avoid visual artifacts (white lines) from the camera feed. -->
             <Rectangle Grid.RowSpan="3" Grid.Column="0" Fill="#2760A3" />
