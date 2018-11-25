@@ -87,6 +87,9 @@ namespace KinectDrawing
 
             Unloaded += (s, e) =>
                 {
+                    this.timer?.Stop();
+                    this.countdownTimer?.Stop();
+
                     this.colorReader?.Dispose();
                     this.bodyReader?.Dispose();
                     this.sensor?.Close();
