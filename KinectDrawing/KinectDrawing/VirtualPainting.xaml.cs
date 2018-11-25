@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -162,7 +160,7 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Confirming presence...");
-                        this.timer.Interval = new TimeSpan(0, 0, 1);
+                        this.timer.Interval = TimeSpan.FromSeconds(1);
                         this.timer.Start();
                     })
                 .Permit(Trigger.TimerTick, State.Countdown3)
@@ -174,7 +172,7 @@ namespace KinectDrawing
                         Debug.WriteLine("3...");
                         this.countdownValue.Text = "3";
                         this.countdownValue.Visibility = Visibility.Visible;
-                        this.timer.Interval = new TimeSpan(0, 0, 1);
+                        this.timer.Interval = TimeSpan.FromSeconds(1);
                         this.timer.Start();
                     })
                 .OnExit(t =>
@@ -192,7 +190,7 @@ namespace KinectDrawing
                     {
                         Debug.WriteLine("2...");
                         this.countdownValue.Text = "2";
-                        this.timer.Interval = new TimeSpan(0, 0, 1);
+                        this.timer.Interval = TimeSpan.FromSeconds(1);
                         this.timer.Start();
                     })
                 .OnExit(t =>
@@ -210,7 +208,7 @@ namespace KinectDrawing
                     {
                         Debug.WriteLine("1...");
                         this.countdownValue.Text = "1";
-                        this.timer.Interval = new TimeSpan(0, 0, 1);
+                        this.timer.Interval = TimeSpan.FromSeconds(1);
                         this.timer.Start();
                     })
                 .OnExit(t =>
@@ -230,7 +228,7 @@ namespace KinectDrawing
 
                         this.colorReader.IsPaused = true;
 
-                        this.timer.Interval = new TimeSpan(0, 0, 2);
+                        this.timer.Interval = TimeSpan.FromSeconds(2);
                         this.timer.Start();
                     })
                 .Permit(Trigger.TimerTick, State.HandPickup)
@@ -246,7 +244,7 @@ namespace KinectDrawing
 
                         // Do not start the timer, this will be started in BodyReader_FrameArrived
                         // when the user pointer has entered the canvas.
-                        this.timer.Interval = new TimeSpan(0, 0, 1);
+                        this.timer.Interval = TimeSpan.FromSeconds(1);
                     })
                 .OnExit(t =>
                     {
@@ -262,7 +260,7 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Confirming leaving hand pickup...");
-                        this.timer.Interval = new TimeSpan(0, 0, 3);
+                        this.timer.Interval = TimeSpan.FromSeconds(3);
                         this.timer.Start();
                     })
                 .Permit(Trigger.PersonEnters, State.HandPickup)
@@ -289,7 +287,7 @@ namespace KinectDrawing
                             // re-enters the frame.
                             this.paintingSessionTimeRemaining = null;
                             this.paintingSessionStartTime = DateTime.Now;
-                            this.timer.Interval = new TimeSpan(0, 0, 15);
+                            this.timer.Interval = TimeSpan.FromSeconds(15);
                         }
 
                         this.userPointer.Visibility = Visibility.Visible;
@@ -311,7 +309,7 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Confirming leaving...");
-                        this.timer.Interval = new TimeSpan(0, 0, 3);
+                        this.timer.Interval = TimeSpan.FromSeconds(3);
                         this.timer.Start();
                     })
                 .OnExit(t =>
@@ -338,7 +336,7 @@ namespace KinectDrawing
                         FlashWindow();
                         this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height, GetSavedImagesDirectoryPath());
 
-                        this.timer.Interval = new TimeSpan(0, 0, 7);
+                        this.timer.Interval = TimeSpan.FromSeconds(7);
                         this.timer.Start();
                     })
                 .OnExit(t =>
