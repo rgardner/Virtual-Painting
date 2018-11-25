@@ -277,7 +277,7 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Confirming leaving...");
-                        this.timer.Interval = new TimeSpan(0, 0, 2);
+                        this.timer.Interval = new TimeSpan(0, 0, 3);
                         this.timer.Start();
                     })
                 .OnExit(t =>
