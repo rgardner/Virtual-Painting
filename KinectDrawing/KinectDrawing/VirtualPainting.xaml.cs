@@ -502,7 +502,6 @@ namespace KinectDrawing
             Point canvasViewTopLeft = this.canvasView.TranslatePoint(new Point(), this);
             Point canvasViewBottomRight = this.canvasView.TranslatePoint(new Point(this.canvasView.ActualWidth, this.canvasView.ActualHeight), this);
             var canvasViewRect = new Rect(canvasViewTopLeft, canvasViewBottomRight);
-            DrawRect(canvasViewRect, this.hitTestingBody);
             return canvasViewRect.Contains(jointPoint.X, jointPoint.Y);
         }
 
