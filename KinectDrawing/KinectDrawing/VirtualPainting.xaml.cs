@@ -351,8 +351,11 @@ namespace KinectDrawing
                     })
                 .OnExit(t =>
                     {
-                        this.paintingSession.ClearCanvas(this.canvas);
-                        this.paintingSession = null;
+                        if (t.Destination == State.HandPickup)
+                        {
+                            this.paintingSession.ClearCanvas(this.canvas);
+                            this.paintingSession = null;
+                        }
                     })
                 .Permit(Trigger.TimerTick, State.HandPickup)
                 .Permit(Trigger.PersonLeaves, State.ConfirmingLeavingSavingImage);
@@ -363,6 +366,14 @@ namespace KinectDrawing
                         Debug.WriteLine("Confirming leaving saving image...");
                         this.timer.Interval = TimeSpan.FromSeconds(3);
                         this.timer.Start();
+                    })
+                .OnExit(t =>
+                    {
+                        if (t.Destination == State.WaitingForPresence)
+                        {
+                            this.paintingSession.ClearCanvas(this.canvas);
+                            this.paintingSession = null;
+                        }
                     })
                 .Permit(Trigger.PersonEnters, State.SavingImage)
                 .Permit(Trigger.TimerTick, State.WaitingForPresence);
