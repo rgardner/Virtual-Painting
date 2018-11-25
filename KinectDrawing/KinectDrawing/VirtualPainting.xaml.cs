@@ -282,7 +282,8 @@ namespace KinectDrawing
                         this.timer.Start();
                     })
                 .Permit(Trigger.PersonEnters, State.HandPickup)
-                .Permit(Trigger.TimerTick, State.WaitingForPresence);
+                .Permit(Trigger.TimerTick, State.WaitingForPresence)
+                .Ignore(Trigger.PersonLeaves);
 
             this.stateMachine.Configure(State.Painting)
                 .OnEntry(t =>
@@ -395,7 +396,8 @@ namespace KinectDrawing
                         }
                     })
                 .Permit(Trigger.PersonEnters, State.SavingImage)
-                .Permit(Trigger.TimerTick, State.WaitingForPresence);
+                .Permit(Trigger.TimerTick, State.WaitingForPresence)
+                .Ignore(Trigger.PersonLeaves);
         }
 
         private void FlashWindow()
