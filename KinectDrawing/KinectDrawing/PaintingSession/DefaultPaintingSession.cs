@@ -33,7 +33,8 @@ namespace KinectDrawing.PaintingSession
                     var width = (int)arguments[1];
                     var height = (int)arguments[2];
                     var directoryPath = (string)arguments[3];
-                    var originalRtb = (RenderTargetBitmap)arguments[4];
+                    var backgroundRtb = (RenderTargetBitmap)arguments[4];
+                    var backgroundDirectoryPath = (string)arguments[5];
 
                     var image = new Bitmap(width, height);
                     Bitmap painting = RenderTargetBitmapToBitmap(rtb);
@@ -45,13 +46,13 @@ namespace KinectDrawing.PaintingSession
                     }
 
                     string currentTime = DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss");
-                    string fileName = currentTime + ".png";
-                    string fullPath = Path.Combine(directoryPath, fileName);
+                    string fullPath = Path.Combine(directoryPath, currentTime + ".png");
                     Directory.CreateDirectory(directoryPath);
                     image.Save(fullPath, ImageFormat.Png);
 
-                    string backgroundFilePath = Path.Combine(directoryPath, currentTime + "_original.png");
-                    SaveRenderTargetBitmapAsPng(originalRtb, backgroundFilePath);
+                    string backgroundFilePath = Path.Combine(backgroundDirectoryPath, currentTime + "_original.png");
+                    Directory.CreateDirectory(backgroundDirectoryPath);
+                    SaveRenderTargetBitmapAsPng(backgroundRtb, backgroundFilePath);
                 };
         }
 
@@ -60,16 +61,19 @@ namespace KinectDrawing.PaintingSession
             this.paintingAlgorithm.Paint(body, brush, canvas, startNewSubSession);
         }
 
-        public void SavePainting(System.Windows.Controls.Image background, Canvas canvas, int width, int height, string directoryPath)
+        public void SavePainting(System.Windows.Controls.Image background, Canvas canvas, int width, int height,
+            string directoryPath, string backgroundDirectoryPath)
         {
             var rtb = new RenderTargetBitmap(width, height, 96d, 96d, PixelFormats.Default);
             rtb.Render(background);
             rtb.Render(canvas);
             rtb.Freeze();
+
             var backgroundRtb = new RenderTargetBitmap(width, height, 96d, 96d, PixelFormats.Default);
             backgroundRtb.Render(background);
             backgroundRtb.Freeze();
-            this.backgroundWorker.RunWorkerAsync(new List<object> { rtb, width, height, directoryPath, backgroundRtb });
+
+            this.backgroundWorker.RunWorkerAsync(new List<object> { rtb, width, height, directoryPath, backgroundRtb, backgroundDirectoryPath });
         }
 
         public void ClearCanvas(Canvas canvas)

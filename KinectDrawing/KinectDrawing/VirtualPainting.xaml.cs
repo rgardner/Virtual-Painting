@@ -168,6 +168,12 @@ namespace KinectDrawing
                 ?? Environment.CurrentDirectory;
         }
 
+        private string GetSavedBackgroundImagesDirectoryPath()
+        {
+            return Environment.GetEnvironmentVariable(Settings.SavedBackgroundImagesDirectoryPathEnvironmentVariableName)
+                ?? Environment.CurrentDirectory;
+        }
+
         private void ConfigureStateMachine()
         {
             this.stateMachine.OnTransitioned(t =>
@@ -329,7 +335,8 @@ namespace KinectDrawing
                     // Save the painting session if one exists
                     if ((t.Destination == State.WaitingForPresence) && (this.paintingSession != null))
                     {
-                        this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height, GetSavedImagesDirectoryPath());
+                        this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height,
+                            GetSavedImagesDirectoryPath(), GetSavedBackgroundImagesDirectoryPath());
                         this.paintingSession.ClearCanvas(this.canvas);
                         this.paintingSession = null;
                     }
@@ -349,7 +356,8 @@ namespace KinectDrawing
                             this.subHeader.Text = "to the iPad for future reference";
 
                             FlashWindow();
-                            this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height, GetSavedImagesDirectoryPath());
+                            this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height,
+                                GetSavedImagesDirectoryPath(), GetSavedBackgroundImagesDirectoryPath());
 
                             this.timer.Interval = TimeSpan.FromSeconds(7);
                         }

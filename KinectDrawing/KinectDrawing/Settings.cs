@@ -24,6 +24,7 @@ namespace KinectDrawing
         public const double BodyPresenceAreaBottomHeightRatio = 0.97;
 
         public const string SavedImagesDirectoryPathEnvironmentVariableName = "VirtualPainting_SavedImagesDirectoryPath";
+        public const string SavedBackgroundImagesDirectoryPathEnvironmentVariableName = "VirtualPainting_SavedBackgroundImagesDirectoryPath";
 
         public static readonly bool IsBodyPresenceDebugModeEnabled = false;
         public static readonly bool IsTestModeEnabled = false;

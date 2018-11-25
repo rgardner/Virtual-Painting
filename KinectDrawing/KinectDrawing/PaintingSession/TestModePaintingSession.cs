@@ -138,7 +138,7 @@ namespace KinectDrawing.PaintingSession
             this.rawBodyFrameDataPoints.Add(frameData);
         }
 
-        public void SavePainting(Image background, Canvas canvas, int width, int height, string directoryPath)
+        public void SavePainting(Image background, Canvas canvas, int width, int height, string directoryPath, string backgroundDirectoryPath)
         {
             var rtb = new RenderTargetBitmap(width, height, 96d, 96d, PixelFormats.Default);
             rtb.Render(background);
@@ -148,6 +148,7 @@ namespace KinectDrawing.PaintingSession
             var rtb2 = new RenderTargetBitmap(width, height, 96d, 96d, PixelFormats.Default);
             rtb2.Render(background);
             rtb2.Freeze(); // necessary for the backgroundWorker to access it
+
             this.backgroundWorker.RunWorkerAsync(new List<object> { rtb, rtb2, directoryPath});
         }
 
