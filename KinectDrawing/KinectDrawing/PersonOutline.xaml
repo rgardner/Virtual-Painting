@@ -13,14 +13,17 @@
                     <CombinedGeometry.Geometry1>
                         <CombinedGeometry GeometryCombineMode="Union">
                             <CombinedGeometry.Geometry1>
+                                <!-- Head -->
                                 <EllipseGeometry RadiusX="80" RadiusY="90" Center="400,190" />
                             </CombinedGeometry.Geometry1>
                             <CombinedGeometry.Geometry2>
+                                <!-- Body -->
                                 <EllipseGeometry RadiusX="160" RadiusY="250" Center="400,530" />
                             </CombinedGeometry.Geometry2>
                         </CombinedGeometry>
                     </CombinedGeometry.Geometry1>
                     <CombinedGeometry.Geometry2>
+                        <!-- Neck -->
                         <RectangleGeometry Rect="365,250,70,140" />
                     </CombinedGeometry.Geometry2>
                 </CombinedGeometry>
