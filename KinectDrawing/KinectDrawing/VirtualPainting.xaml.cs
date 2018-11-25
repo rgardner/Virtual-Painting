@@ -41,6 +41,7 @@ namespace KinectDrawing
             Painting,
             ConfirmingLeavingPainting,
             SavingImage,
+            ConfirmingLeavingSavingImage,
         };
 
         private class Person
@@ -330,13 +331,22 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Saving image...");
-                        this.header.Text = "Saved";
-                        this.subHeader.Text = "to the iPad for future reference";
 
-                        FlashWindow();
-                        this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height, GetSavedImagesDirectoryPath());
+                        if (t.Source == State.Painting)
+                        {
+                            this.header.Text = "Saved";
+                            this.subHeader.Text = "to the iPad for future reference";
 
-                        this.timer.Interval = TimeSpan.FromSeconds(7);
+                            FlashWindow();
+                            this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height, GetSavedImagesDirectoryPath());
+
+                            this.timer.Interval = TimeSpan.FromSeconds(7);
+                        }
+                        else if (t.Source == State.ConfirmingLeavingSavingImage)
+                        {
+                            this.timer.Interval = TimeSpan.FromSeconds(2);
+                        }
+
                         this.timer.Start();
                     })
                 .OnExit(t =>
@@ -345,7 +355,17 @@ namespace KinectDrawing
                         this.paintingSession = null;
                     })
                 .Permit(Trigger.TimerTick, State.HandPickup)
-                .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
+                .Permit(Trigger.PersonLeaves, State.ConfirmingLeavingSavingImage);
+
+            this.stateMachine.Configure(State.ConfirmingLeavingSavingImage)
+                .OnEntry(t =>
+                    {
+                        Debug.WriteLine("Confirming leaving saving image...");
+                        this.timer.Interval = TimeSpan.FromSeconds(3);
+                        this.timer.Start();
+                    })
+                .Permit(Trigger.PersonEnters, State.SavingImage)
+                .Permit(Trigger.TimerTick, State.WaitingForPresence);
         }
 
         private void FlashWindow()
@@ -425,7 +445,9 @@ namespace KinectDrawing
                             }
 
                             var isPrimaryBodyInFrame = IsBodyInFrame(primaryBody);
-                            if (this.stateMachine.IsInState(State.ConfirmingLeavingHandPickup) || this.stateMachine.IsInState(State.ConfirmingLeavingPainting))
+                            if (this.stateMachine.IsInState(State.ConfirmingLeavingHandPickup)
+                                || this.stateMachine.IsInState(State.ConfirmingLeavingPainting)
+                                || this.stateMachine.IsInState(State.ConfirmingLeavingSavingImage))
                             {
                                 if (isPrimaryBodyInFrame)
                                 {
