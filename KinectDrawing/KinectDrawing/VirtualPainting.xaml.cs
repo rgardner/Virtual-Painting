@@ -39,8 +39,9 @@ namespace KinectDrawing
             Countdown1,
             Snapshot,
             HandPickup,
+            ConfirmingLeavingHandPickup,
             Painting,
-            ConfirmingLeaving,
+            ConfirmingLeavingPainting,
             SavingImage,
         };
 
@@ -74,6 +75,8 @@ namespace KinectDrawing
 
         private SolidColorBrush currentBrush;
         private IPaintingSession paintingSession = null;
+        private TimeSpan? paintingSessionTimeRemaining;
+        private DateTime? paintingSessionStartTime;
         private Person primaryPerson = null;
 
         public VirtualPainting()
@@ -253,27 +256,58 @@ namespace KinectDrawing
                         }
                     })
                 .Permit(Trigger.TimerTick, State.Painting)
-                .Permit(Trigger.PersonLeaves, State.ConfirmingLeaving);
+                .Permit(Trigger.PersonLeaves, State.ConfirmingLeavingHandPickup);
+
+            this.stateMachine.Configure(State.ConfirmingLeavingHandPickup)
+                .OnEntry(t =>
+                    {
+                        Debug.WriteLine("Confirming leaving hand pickup...");
+                        this.timer.Interval = new TimeSpan(0, 0, 3);
+                        this.timer.Start();
+                    })
+                .Permit(Trigger.PersonEnters, State.HandPickup)
+                .Permit(Trigger.TimerTick, State.WaitingForPresence);
 
             this.stateMachine.Configure(State.Painting)
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Painting...");
-                        this.currentBrush = GetRandomBrush();
-                        this.paintingSession = CreatePaintingSession();
-                        this.userPointer.Visibility = Visibility.Visible;
 
-                        this.timer.Interval = new TimeSpan(0, 0, 15);
+                        if (t.Source == State.ConfirmingLeavingPainting)
+                        {
+                            this.timer.Interval = this.paintingSessionTimeRemaining.Value;
+                        }
+                        else
+                        {
+                            this.header.Text = "Construct";
+                            this.subHeader.Text = "a new identity with paint";
+
+                            this.currentBrush = GetRandomBrush();
+                            this.paintingSession = CreatePaintingSession();
+
+                            // Save start time so we can resume the timer if the person leaves and
+                            // re-enters the frame.
+                            this.paintingSessionTimeRemaining = null;
+                            this.paintingSessionStartTime = DateTime.Now;
+                            this.timer.Interval = new TimeSpan(0, 0, 15);
+                        }
+
+                        this.userPointer.Visibility = Visibility.Visible;
                         this.timer.Start();
                     })
                 .OnExit(t =>
                     {
                         this.userPointer.Visibility = Visibility.Collapsed;
+                        if (t.Destination == State.ConfirmingLeavingPainting)
+                        {
+                            TimeSpan elapsedPaintingSessionTime = DateTime.Now - this.paintingSessionStartTime.Value;
+                            this.paintingSessionTimeRemaining = TimeSpan.FromSeconds(15) - elapsedPaintingSessionTime;
+                        }
                     })
                 .Permit(Trigger.TimerTick, State.SavingImage)
-                .Permit(Trigger.PersonLeaves, State.ConfirmingLeaving);
+                .Permit(Trigger.PersonLeaves, State.ConfirmingLeavingPainting);
 
-            this.stateMachine.Configure(State.ConfirmingLeaving)
+            this.stateMachine.Configure(State.ConfirmingLeavingPainting)
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Confirming leaving...");
@@ -393,7 +427,7 @@ namespace KinectDrawing
                             }
 
                             var isPrimaryBodyInFrame = IsBodyInFrame(primaryBody);
-                            if (this.stateMachine.IsInState(State.ConfirmingLeaving))
+                            if (this.stateMachine.IsInState(State.ConfirmingLeavingHandPickup) || this.stateMachine.IsInState(State.ConfirmingLeavingPainting))
                             {
                                 if (isPrimaryBodyInFrame)
                                 {
