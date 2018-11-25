@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -19,7 +21,7 @@ namespace KinectDrawing
     /// <summary>
     /// Interaction logic for VirtualPainting.xaml
     /// </summary>
-    public partial class VirtualPainting : UserControl
+    public partial class VirtualPainting : UserControl, INotifyPropertyChanged
     {
         private enum Trigger
         {
@@ -32,9 +34,7 @@ namespace KinectDrawing
         {
             WaitingForPresence,
             ConfirmingPresence,
-            Countdown3,
-            Countdown2,
-            Countdown1,
+            Countdown,
             Snapshot,
             HandPickup,
             ConfirmingLeavingHandPickup,
@@ -71,6 +71,9 @@ namespace KinectDrawing
         private WriteableBitmap bitmap = null;
 
         private Rect bodyPresenceArea;
+
+        private CountdownTimer countdownTimer = null;
+        private string countdownValue = string.Empty;
 
         private SolidColorBrush currentBrush;
         private IPaintingSession paintingSession = null;
@@ -132,6 +135,30 @@ namespace KinectDrawing
             this.DataContext = this;
         }
 
+        public string CountdownValue
+        {
+            get => this.countdownValue;
+
+            private set
+            {
+                if (value != this.countdownValue)
+                {
+                    this.countdownValue = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
+        /// <summary>
+        /// INotifyPropertyChanged event to allow window controls to bind to changeable data.
+        /// </summary>
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
         private string GetSavedImagesDirectoryPath()
         {
             return Environment.GetEnvironmentVariable(Settings.SavedImagesDirectoryPathEnvironmentVariableName)
@@ -164,57 +191,38 @@ namespace KinectDrawing
                         this.timer.Interval = TimeSpan.FromSeconds(1);
                         this.timer.Start();
                     })
-                .Permit(Trigger.TimerTick, State.Countdown3)
+                .Permit(Trigger.TimerTick, State.Countdown)
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
 
-            this.stateMachine.Configure(State.Countdown3)
+            this.stateMachine.Configure(State.Countdown)
                 .OnEntry(t =>
                     {
-                        Debug.WriteLine("3...");
-                        this.countdownValue.Text = "3";
-                        this.countdownValue.Visibility = Visibility.Visible;
-                        this.timer.Interval = TimeSpan.FromSeconds(1);
-                        this.timer.Start();
+                        const int initialCountdownValue = 3;
+                        Debug.WriteLine($"{initialCountdownValue}...");
+                        this.countdownTimer = new CountdownTimer(initialCountdownValue);
+                        this.countdownTimer.PropertyChanged += (s, e) =>
+                            {
+                                if (string.Equals(e.PropertyName, "Value"))
+                                {
+                                    if (this.countdownTimer.Value == 0)
+                                    {
+                                        this.stateMachine.Fire(Trigger.TimerTick);
+                                    }
+                                    else
+                                    {
+                                        Debug.WriteLine($"{this.countdownTimer.Value}...");
+                                        this.CountdownValue = countdownTimer.Value.ToString();
+                                    }
+                                }
+                            };
+                        this.countdownTimer.Start();
+                        this.CountdownValue = initialCountdownValue.ToString();
                     })
                 .OnExit(t =>
                     {
-                        if (t.Destination == State.WaitingForPresence)
-                        {
-                            this.countdownValue.Visibility = Visibility.Collapsed;
-                        }
-                    })
-                .Permit(Trigger.TimerTick, State.Countdown2)
-                .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
-
-            this.stateMachine.Configure(State.Countdown2)
-                .OnEntry(t =>
-                    {
-                        Debug.WriteLine("2...");
-                        this.countdownValue.Text = "2";
-                        this.timer.Interval = TimeSpan.FromSeconds(1);
-                        this.timer.Start();
-                    })
-                .OnExit(t =>
-                    {
-                        if (t.Destination == State.WaitingForPresence)
-                        {
-                            this.countdownValue.Visibility = Visibility.Collapsed;
-                        }
-                    })
-                .Permit(Trigger.TimerTick, State.Countdown1)
-                .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
-
-            this.stateMachine.Configure(State.Countdown1)
-                .OnEntry(t =>
-                    {
-                        Debug.WriteLine("1...");
-                        this.countdownValue.Text = "1";
-                        this.timer.Interval = TimeSpan.FromSeconds(1);
-                        this.timer.Start();
-                    })
-                .OnExit(t =>
-                    {
-                        this.countdownValue.Visibility = Visibility.Collapsed;
+                        this.countdownTimer.Stop();
+                        this.countdownTimer = null;
+                        this.CountdownValue = string.Empty;
                     })
                 .Permit(Trigger.TimerTick, State.Snapshot)
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence);

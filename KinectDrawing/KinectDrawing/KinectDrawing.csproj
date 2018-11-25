@@ -75,7 +75,9 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="BindableBase.cs" />
     <Compile Include="BrushColorCycler.cs" />
+    <Compile Include="CountdownTimer.cs" />
     <Compile Include="PersonOutline.xaml.cs">
       <DependentUpon>PersonOutline.xaml</DependentUpon>
     </Compile>

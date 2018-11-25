@@ -46,7 +46,8 @@
                 <Viewbox>
                     <local:PersonOutline x:Name="personOutline" Width="600" Height="500" Margin="-200,0,0,0"/>
                 </Viewbox>
-                <TextBlock Name="countdownValue" Text="3" FontSize="150" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity=".75" Visibility="Collapsed" Foreground="#2760A3" />
+                <TextBlock Text="{Binding CountdownValue}" FontSize="150" HorizontalAlignment="Center"
+                           VerticalAlignment="Center" Opacity=".75" Foreground="#2760A3" />
                 <Rectangle Name="flashOverlay" Fill="White" Opacity="0" />
             </Grid>
             <!-- Span all 3 rows to avoid visual artifacts (white lines) from the camera feed. -->
