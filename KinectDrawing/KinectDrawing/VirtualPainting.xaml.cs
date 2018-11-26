@@ -246,7 +246,7 @@ namespace KinectDrawing
 
                         this.colorReader.IsPaused = true;
 
-                        this.timer.Interval = TimeSpan.FromSeconds(1.5);
+                        this.timer.Interval = TimeSpan.FromSeconds(0.75);
                         this.timer.Start();
                     })
                 .Permit(Trigger.TimerTick, State.HandPickup)
