@@ -354,7 +354,9 @@ namespace KinectDrawing
                         if (t.Source == State.Painting)
                         {
                             this.header.Text = "Saved";
-                            this.subHeader.Text = "to the iPad for future reference";
+                            this.subHeader.Text = "for future reference";
+                            // TODO: Switch subHeader when done recording
+                            // this.subHeader.Text = "to the iPad for future reference";
 
                             FlashWindow();
                             this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height,
