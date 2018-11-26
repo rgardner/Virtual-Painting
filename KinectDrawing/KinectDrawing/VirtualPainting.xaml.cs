@@ -461,28 +461,13 @@ namespace KinectDrawing
                         var primaryBody = this.bodies[this.primaryPerson.BodyIndex];
                         if (primaryBody != null && primaryBody.TrackingId == this.primaryPerson.TrackingId && primaryBody.IsTracked)
                         {
-                            if (this.stateMachine.IsInState(State.HandPickup) || this.stateMachine.IsInState(State.Painting))
-                            {
-                                DrawUserPointerIfNeeded(primaryBody.Joints[JointType.HandRight]);
-                                if (this.stateMachine.IsInState(State.HandPickup))
-                                {
-                                    if (!this.timer.IsEnabled && IsJointInCanvasView(primaryBody.Joints[JointType.HandRight]))
-                                    {
-                                        Debug.WriteLine("Hand entered frame");
-                                        this.timer.Start();
-                                    }
-                                }
-                                else if (this.stateMachine.IsInState(State.Painting))
-                                {
-                                    this.paintingSession.Paint(primaryBody, this.currentBrush, this.canvas);
-                                }
-                            }
-
                             var isPrimaryBodyInFrame = IsBodyInFrame(primaryBody);
                             if (this.stateMachine.IsInState(State.ConfirmingLeavingHandPickup)
                                 || this.stateMachine.IsInState(State.ConfirmingLeavingPainting)
                                 || this.stateMachine.IsInState(State.ConfirmingLeavingSavingImage))
                             {
+                                // Last frame the primary body was missing from the frame, detect
+                                // if they have returned.
                                 if (isPrimaryBodyInFrame)
                                 {
                                     this.stateMachine.Fire(Trigger.PersonEnters);
@@ -491,6 +476,26 @@ namespace KinectDrawing
                             else if (!isPrimaryBodyInFrame)
                             {
                                 this.stateMachine.Fire(Trigger.PersonLeaves);
+                            }
+                            else
+                            {
+                                if (this.stateMachine.IsInState(State.HandPickup) || this.stateMachine.IsInState(State.Painting))
+                                {
+                                    DrawUserPointerIfNeeded(primaryBody.Joints[JointType.HandRight]);
+
+                                    if (this.stateMachine.IsInState(State.HandPickup))
+                                    {
+                                        if (!this.timer.IsEnabled && IsJointInCanvasView(primaryBody.Joints[JointType.HandRight]))
+                                        {
+                                            Debug.WriteLine("Hand entered frame");
+                                            this.timer.Start();
+                                        }
+                                    }
+                                    else if (this.stateMachine.IsInState(State.Painting))
+                                    {
+                                        this.paintingSession.Paint(primaryBody, this.currentBrush, this.canvas);
+                                    }
+                                }
                             }
                         }
                         else
