@@ -49,10 +49,10 @@ namespace KinectDrawing.PaintingSession
 
         private class RawBodyFrameData
         {
-            public RawJointData HandTip;
-            public RawJointData Hand;
-            public RawJointData Wrist;
-            public RawJointData Elbow;
+            public RawJointData HandTip { get; set; }
+            public RawJointData Hand { get; set; }
+            public RawJointData Wrist { get; set; }
+            public RawJointData Elbow { get; set; }
 
             public RawBodyFrameData(Body body, KinectSensor sensor)
             {
