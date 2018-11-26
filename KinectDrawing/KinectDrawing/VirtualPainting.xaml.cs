@@ -262,7 +262,7 @@ namespace KinectDrawing
 
                         // Do not start the timer, this will be started in BodyReader_FrameArrived
                         // when the user pointer has entered the canvas.
-                        this.timer.Interval = TimeSpan.FromSeconds(1);
+                        this.timer.Interval = TimeSpan.FromSeconds(2);
                     })
                 .OnExit(t =>
                     {
