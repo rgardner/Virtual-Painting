@@ -30,5 +30,6 @@ namespace KinectDrawing
 
         public static readonly bool IsBodyPresenceDebugModeEnabled = false;
         public static readonly bool IsTestModeEnabled = false;
+        public static readonly bool IsBodyDistanceDebugModeEnabled = false;
     }
 }

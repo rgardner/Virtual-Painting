@@ -80,6 +80,7 @@ namespace KinectDrawing
         private TimeSpan? paintingSessionTimeRemaining;
         private DateTime? paintingSessionStartTime;
         private Person primaryPerson = null;
+        private string primaryBodyDistance = null;
 
         public VirtualPainting()
         {
@@ -147,6 +148,20 @@ namespace KinectDrawing
                 if (value != this.countdownValue)
                 {
                     this.countdownValue = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
+        public string PrimaryBodyDistance
+        {
+            get => this.primaryBodyDistance;
+
+            private set
+            {
+                if (value != this.primaryBodyDistance)
+                {
+                    this.primaryBodyDistance = value;
                     NotifyPropertyChanged();
                 }
             }
@@ -579,6 +594,12 @@ namespace KinectDrawing
         {
             Joint spine = body.Joints[JointType.SpineMid];
             double distance = CalculateDistanceToCamera(spine);
+
+            if (Settings.IsBodyDistanceDebugModeEnabled)
+            {
+                this.PrimaryBodyDistance = $"Distance: {distance}m";
+            }
+
             return distance <= Settings.BodyDistanceToCameraThresholdInMeters;
         }
 
