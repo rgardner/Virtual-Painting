@@ -446,7 +446,7 @@ namespace KinectDrawing
                         for (int i = 0; i < this.bodies.Count; i++)
                         {
                             var body = this.bodies[i];
-                            if (body != null && body.IsTracked && IsBodyInFrame(body))
+                            if (body != null && body.IsTracked && IsBodyInFrame(body) && IsCloseEnoughToCamera(body))
                             {
                                 this.primaryPerson = new Person(i, body.TrackingId);
                                 this.stateMachine.Fire(Trigger.PersonEnters);
@@ -461,7 +461,7 @@ namespace KinectDrawing
                         var primaryBody = this.bodies[this.primaryPerson.BodyIndex];
                         if (primaryBody != null && primaryBody.TrackingId == this.primaryPerson.TrackingId && primaryBody.IsTracked)
                         {
-                            var isPrimaryBodyInFrame = IsBodyInFrame(primaryBody);
+                            var isPrimaryBodyInFrame = IsBodyInFrame(primaryBody) && IsCloseEnoughToCamera(primaryBody);
                             if (this.stateMachine.IsInState(State.ConfirmingLeavingHandPickup)
                                 || this.stateMachine.IsInState(State.ConfirmingLeavingPainting)
                                 || this.stateMachine.IsInState(State.ConfirmingLeavingSavingImage))
@@ -479,6 +479,7 @@ namespace KinectDrawing
                             }
                             else
                             {
+                                // Primary person is in the frame and is a valid distance from the camera.
                                 if (this.stateMachine.IsInState(State.HandPickup) || this.stateMachine.IsInState(State.Painting))
                                 {
                                     DrawUserPointerIfNeeded(primaryBody.Joints[JointType.HandRight]);
@@ -572,6 +573,19 @@ namespace KinectDrawing
             }
 
             return this.bodyPresenceArea.Contains(bodyX1, bodyY1) && this.bodyPresenceArea.Contains(bodyX2, bodyY2);
+        }
+
+        private bool IsCloseEnoughToCamera(Body body)
+        {
+            Joint spine = body.Joints[JointType.SpineMid];
+            double distance = CalculateDistanceToCamera(spine);
+            return distance <= Settings.BodyDistanceToCameraThresholdInMeters;
+        }
+
+        private double CalculateDistanceToCamera(Joint spine)
+        {
+            var position = spine.Position;
+            return Math.Sqrt(Math.Pow(position.X, 2) + Math.Pow(position.Y, 2) + Math.Pow(position.Z, 2));
         }
 
         /// <summary>
