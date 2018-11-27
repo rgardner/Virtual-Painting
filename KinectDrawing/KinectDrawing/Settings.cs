@@ -23,7 +23,7 @@ namespace KinectDrawing
         public const double BodyPresenceAreaRightWidthRatio = 0.71;
         public const double BodyPresenceAreaBottomHeightRatio = 0.97;
 
-        public const double BodyDistanceToCameraThresholdInMeters = 2.0;
+        public const double BodyDistanceToCameraThresholdInMeters = 1.5;
 
         public const string SavedImagesDirectoryPathEnvironmentVariableName = "VirtualPainting_SavedImagesDirectoryPath";
         public const string SavedBackgroundImagesDirectoryPathEnvironmentVariableName = "VirtualPainting_SavedBackgroundImagesDirectoryPath";

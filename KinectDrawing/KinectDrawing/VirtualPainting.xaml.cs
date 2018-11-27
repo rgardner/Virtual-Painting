@@ -54,6 +54,7 @@ namespace KinectDrawing
 
             public int BodyIndex { get; private set; }
             public ulong TrackingId { get; private set; }
+            public double MedianDistanceFromCameraInMeters { get; set; } = Settings.BodyDistanceToCameraThresholdInMeters;
         }
 
         private readonly StateMachine<State, Trigger> stateMachine = new StateMachine<State, Trigger>(State.WaitingForPresence);
@@ -81,6 +82,7 @@ namespace KinectDrawing
         private DateTime? paintingSessionStartTime;
         private Person primaryPerson = null;
         private string primaryBodyDistance = null;
+        private PersonCalibrator personCalibrator;
 
         public VirtualPainting()
         {
@@ -212,8 +214,14 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Confirming presence...");
+                        this.personCalibrator = new PersonCalibrator();
                         this.timer.Interval = TimeSpan.FromSeconds(1);
                         this.timer.Start();
+                    })
+                .OnExit(t =>
+                    {
+                        this.primaryPerson.MedianDistanceFromCameraInMeters = this.personCalibrator.CalculateMedianDistance();
+                        this.personCalibrator = null;
                     })
                 .Permit(Trigger.TimerTick, State.Countdown)
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
@@ -476,7 +484,7 @@ namespace KinectDrawing
                         var primaryBody = this.bodies[this.primaryPerson.BodyIndex];
                         if (primaryBody != null && primaryBody.TrackingId == this.primaryPerson.TrackingId && primaryBody.IsTracked)
                         {
-                            var isPrimaryBodyInFrame = IsBodyInFrame(primaryBody) && IsCloseEnoughToCamera(primaryBody);
+                            var isPrimaryBodyInFrame = IsBodyInFrame(primaryBody) && IsPrimaryPersonCloseEnoughToCamera(primaryBody);
                             if (this.stateMachine.IsInState(State.ConfirmingLeavingHandPickup)
                                 || this.stateMachine.IsInState(State.ConfirmingLeavingPainting)
                                 || this.stateMachine.IsInState(State.ConfirmingLeavingSavingImage))
@@ -495,7 +503,12 @@ namespace KinectDrawing
                             else
                             {
                                 // Primary person is in the frame and is a valid distance from the camera.
-                                if (this.stateMachine.IsInState(State.HandPickup) || this.stateMachine.IsInState(State.Painting))
+                                if (this.stateMachine.IsInState(State.ConfirmingPresence))
+                                {
+                                    // Calibrate the primary person's distance
+                                    this.personCalibrator.AddDistanceFromCamera(CalculateDistanceFromCamera(primaryBody));
+                                }
+                                else if (this.stateMachine.IsInState(State.HandPickup) || this.stateMachine.IsInState(State.Painting))
                                 {
                                     DrawUserPointerIfNeeded(primaryBody.Joints[JointType.HandRight]);
 
@@ -590,10 +603,21 @@ namespace KinectDrawing
             return this.bodyPresenceArea.Contains(bodyX1, bodyY1) && this.bodyPresenceArea.Contains(bodyX2, bodyY2);
         }
 
+        private bool IsPrimaryPersonCloseEnoughToCamera(Body body)
+        {
+            double distance = CalculateDistanceFromCamera(body);
+
+            if (Settings.IsBodyDistanceDebugModeEnabled)
+            {
+                this.PrimaryBodyDistance = $"Distance: {distance}m";
+            }
+
+            return distance <= Math.Min(this.primaryPerson.MedianDistanceFromCameraInMeters, Settings.BodyDistanceToCameraThresholdInMeters);
+        }
+
         private bool IsCloseEnoughToCamera(Body body)
         {
-            Joint spine = body.Joints[JointType.SpineMid];
-            double distance = CalculateDistanceToCamera(spine);
+            double distance = CalculateDistanceFromCamera(body);
 
             if (Settings.IsBodyDistanceDebugModeEnabled)
             {
@@ -603,9 +627,10 @@ namespace KinectDrawing
             return distance <= Settings.BodyDistanceToCameraThresholdInMeters;
         }
 
-        private double CalculateDistanceToCamera(Joint spine)
+        private double CalculateDistanceFromCamera(Body body)
         {
-            var position = spine.Position;
+            Joint joint = body.Joints[JointType.SpineMid];
+            CameraSpacePoint position = joint.Position;
             return Math.Sqrt(Math.Pow(position.X, 2) + Math.Pow(position.Y, 2) + Math.Pow(position.Z, 2));
         }
 

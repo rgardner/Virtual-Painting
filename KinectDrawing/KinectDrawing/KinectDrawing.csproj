@@ -78,6 +78,7 @@
     <Compile Include="BindableBase.cs" />
     <Compile Include="BrushColorCycler.cs" />
     <Compile Include="CountdownTimer.cs" />
+    <Compile Include="PersonCalibrator.cs" />
     <Compile Include="PersonOutline.xaml.cs">
       <DependentUpon>PersonOutline.xaml</DependentUpon>
     </Compile>
