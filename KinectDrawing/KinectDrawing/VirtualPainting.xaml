@@ -53,7 +53,7 @@
             </Grid>
             <Grid Name="canvasView" Grid.Row="1" Grid.Column="1">
                 <Viewbox>
-                    <local:PersonOutline x:Name="personOutline" Width="600" Height="500" Margin="-200,-50,0,0"/>
+                    <local:PersonOutline Visibility="{Binding PersonOutlineVisibility}"  Width="600" Height="500" Margin="-200,-50,0,0"/>
                 </Viewbox>
                 <TextBlock Text="{Binding CountdownValue}" FontSize="150" HorizontalAlignment="Center"
                            VerticalAlignment="Center" Opacity=".75" Foreground="#2760A3" />

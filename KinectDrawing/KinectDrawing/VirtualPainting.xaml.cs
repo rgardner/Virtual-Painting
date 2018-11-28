@@ -85,6 +85,7 @@ namespace KinectDrawing
         private PersonCalibrator personCalibrator;
         private string headerText = Properties.Resources.WaitingForPresenceHeader;
         private string subHeaderText = Properties.Resources.WaitingForPresenceSubHeader;
+        private Visibility personOutlineVisibility = Visibility.Visible;
 
         public VirtualPainting()
         {
@@ -199,6 +200,20 @@ namespace KinectDrawing
             }
         }
 
+        public Visibility PersonOutlineVisibility
+        {
+            get => this.personOutlineVisibility;
+
+            private set
+            {
+                if (value != this.personOutlineVisibility)
+                {
+                    this.personOutlineVisibility = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
         /// <summary>
         /// INotifyPropertyChanged event to allow window controls to bind to changeable data.
         /// </summary>
@@ -233,7 +248,7 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Waiting for presence...");
-                        this.personOutline.Visibility = Visibility.Visible;
+                        this.PersonOutlineVisibility = Visibility.Visible;
                         this.colorReader.IsPaused = false;
                         this.primaryPerson = null;
                     })
@@ -292,7 +307,7 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Snapshot!");
-                        this.personOutline.Visibility = Visibility.Collapsed;
+                        this.PersonOutlineVisibility = Visibility.Collapsed;
                         FlashWindow();
 
                         this.colorReader.IsPaused = true;
