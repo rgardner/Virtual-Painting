@@ -83,8 +83,8 @@ namespace KinectDrawing
         private Person primaryPerson = null;
         private string primaryBodyDistance = null;
         private PersonCalibrator personCalibrator;
-        private string headerText = "Smile!";
-        private string subHeaderText = "to capture base layer image";
+        private string headerText = Properties.Resources.WaitingForPresenceHeader;
+        private string subHeaderText = Properties.Resources.WaitingForPresenceSubHeader;
 
         public VirtualPainting()
         {
@@ -225,6 +225,7 @@ namespace KinectDrawing
         {
             this.stateMachine.OnTransitioned(t =>
                 {
+                    SetHeadersForState(t.Destination);
                     this.timer.Stop();
                 });
 
@@ -232,8 +233,6 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Waiting for presence...");
-                        this.HeaderText = "Smile!";
-                        this.SubHeaderText = "to capture a base layer image";
                         this.personOutline.Visibility = Visibility.Visible;
                         this.colorReader.IsPaused = false;
                         this.primaryPerson = null;
@@ -293,7 +292,6 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Snapshot!");
-                        this.HeaderText = "Snapshot!";
                         this.personOutline.Visibility = Visibility.Collapsed;
                         FlashWindow();
 
@@ -309,8 +307,6 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Waiting for hand to enter frame...");
-                        this.HeaderText = "Construct";
-                        this.SubHeaderText = "a new identity with paint";
                         this.userPointer.Visibility = Visibility.Visible;
 
                         // Do not start the timer, this will be started in BodyReader_FrameArrived
@@ -349,9 +345,6 @@ namespace KinectDrawing
                         }
                         else
                         {
-                            this.HeaderText = "Construct";
-                            this.SubHeaderText = "a new identity with paint";
-
                             this.currentBrush = GetRandomBrush();
                             this.paintingSession = CreatePaintingSession();
 
@@ -406,8 +399,6 @@ namespace KinectDrawing
 
                         if (t.Source == State.Painting)
                         {
-                            this.HeaderText = "Saved";
-                            this.SubHeaderText = "for future reference";
                             // TODO: Switch subHeader when done recording
                             // this.subHeader.Text = "to the iPad for future reference";
 
@@ -453,6 +444,38 @@ namespace KinectDrawing
                 .Permit(Trigger.PersonEnters, State.SavingImage)
                 .Permit(Trigger.TimerTick, State.WaitingForPresence)
                 .Ignore(Trigger.PersonLeaves);
+        }
+
+        private void SetHeadersForState(State state)
+        {
+            switch (state)
+            {
+                case State.WaitingForPresence:
+                case State.ConfirmingPresence:
+                case State.Countdown:
+                    this.HeaderText = Properties.Resources.WaitingForPresenceHeader;
+                    this.SubHeaderText = Properties.Resources.WaitingForPresenceSubHeader;
+                    break;
+                case State.Snapshot:
+                    this.HeaderText = Properties.Resources.SnapshotHeader;
+                    this.SubHeaderText = string.Empty;
+                    break;
+                case State.HandPickup:
+                case State.ConfirmingLeavingHandPickup:
+                case State.Painting:
+                case State.ConfirmingLeavingPainting:
+                    this.HeaderText = Properties.Resources.PaintingHeader;
+                    this.SubHeaderText = Properties.Resources.PaintingSubHeader;
+                    break;
+                case State.SavingImage:
+                case State.ConfirmingLeavingSavingImage:
+                    this.HeaderText = Properties.Resources.SavingImageHeader;
+                    this.SubHeaderText = Properties.Resources.SavingImageSubHeader;
+                    break;
+                default:
+                    Debug.Assert(false, $"Unknown State: {state}");
+                    break;
+            }
         }
 
         private void FlashWindow()

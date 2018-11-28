@@ -117,8 +117,30 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="PaintingHeader" xml:space="preserve">
+    <value>Construct</value>
+  </data>
+  <data name="PaintingSubHeader" xml:space="preserve">
+    <value>a new identity with paint</value>
+  </data>
   <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
   <data name="SavedImageFrame" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Images\saved_image_frame.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="SavingImageHeader" xml:space="preserve">
+    <value>Saved</value>
+  </data>
+  <data name="SavingImageSubHeader" xml:space="preserve">
+    <value>for future reference</value>
+    <comment>TODO: replace this with "to iPad for future reference"</comment>
+  </data>
+  <data name="SnapshotHeader" xml:space="preserve">
+    <value>Snapshot!</value>
+  </data>
+  <data name="WaitingForPresenceHeader" xml:space="preserve">
+    <value>Smile!</value>
+  </data>
+  <data name="WaitingForPresenceSubHeader" xml:space="preserve">
+    <value>to capture a base layer image</value>
   </data>
 </root>

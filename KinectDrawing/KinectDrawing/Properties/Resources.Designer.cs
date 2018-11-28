@@ -61,12 +61,75 @@ namespace KinectDrawing.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Construct.
+        /// </summary>
+        internal static string PaintingHeader {
+            get {
+                return ResourceManager.GetString("PaintingHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to a new identity with paint.
+        /// </summary>
+        internal static string PaintingSubHeader {
+            get {
+                return ResourceManager.GetString("PaintingSubHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap SavedImageFrame {
             get {
                 object obj = ResourceManager.GetObject("SavedImageFrame", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Saved.
+        /// </summary>
+        internal static string SavingImageHeader {
+            get {
+                return ResourceManager.GetString("SavingImageHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to for future reference.
+        /// </summary>
+        internal static string SavingImageSubHeader {
+            get {
+                return ResourceManager.GetString("SavingImageSubHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Snapshot!.
+        /// </summary>
+        internal static string SnapshotHeader {
+            get {
+                return ResourceManager.GetString("SnapshotHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Smile!.
+        /// </summary>
+        internal static string WaitingForPresenceHeader {
+            get {
+                return ResourceManager.GetString("WaitingForPresenceHeader", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to to capture a base layer image.
+        /// </summary>
+        internal static string WaitingForPresenceSubHeader {
+            get {
+                return ResourceManager.GetString("WaitingForPresenceSubHeader", resourceCulture);
             }
         }
     }
