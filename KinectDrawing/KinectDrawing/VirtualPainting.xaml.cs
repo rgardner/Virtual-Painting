@@ -612,7 +612,8 @@ namespace KinectDrawing
                 this.PrimaryBodyDistance = $"Distance: {distance}m";
             }
 
-            return distance <= Math.Min(this.primaryPerson.MedianDistanceFromCameraInMeters, Settings.BodyDistanceToCameraThresholdInMeters);
+            double maxPersonAllowedDistance = this.primaryPerson.MedianDistanceFromCameraInMeters + Settings.BodyDistanceVariationThresholdInMeters;
+            return distance <= Math.Min(maxPersonAllowedDistance, Settings.BodyDistanceToCameraThresholdInMeters);
         }
 
         private bool IsCloseEnoughToCamera(Body body)
