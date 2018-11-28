@@ -83,6 +83,8 @@ namespace KinectDrawing
         private Person primaryPerson = null;
         private string primaryBodyDistance = null;
         private PersonCalibrator personCalibrator;
+        private string headerText = "Smile!";
+        private string subHeaderText = "to capture base layer image";
 
         public VirtualPainting()
         {
@@ -139,6 +141,34 @@ namespace KinectDrawing
             }
 
             this.DataContext = this;
+        }
+
+        public string HeaderText
+        {
+            get => this.headerText;
+
+            private set
+            {
+                if (value != this.headerText)
+                {
+                    this.headerText = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
+        public string SubHeaderText
+        {
+            get => this.subHeaderText;
+
+            private set
+            {
+                if (value != this.subHeaderText)
+                {
+                    this.subHeaderText = value;
+                    NotifyPropertyChanged();
+                }
+            }
         }
 
         public string CountdownValue
@@ -202,8 +232,8 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Waiting for presence...");
-                        this.header.Text = "Smile!";
-                        this.subHeader.Text = "to capture a base layer image";
+                        this.HeaderText = "Smile!";
+                        this.SubHeaderText = "to capture a base layer image";
                         this.personOutline.Visibility = Visibility.Visible;
                         this.colorReader.IsPaused = false;
                         this.primaryPerson = null;
@@ -263,7 +293,7 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Snapshot!");
-                        this.header.Text = "Snapshot!";
+                        this.HeaderText = "Snapshot!";
                         this.personOutline.Visibility = Visibility.Collapsed;
                         FlashWindow();
 
@@ -279,8 +309,8 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Waiting for hand to enter frame...");
-                        this.header.Text = "Construct";
-                        this.subHeader.Text = "a new identity with paint";
+                        this.HeaderText = "Construct";
+                        this.SubHeaderText = "a new identity with paint";
                         this.userPointer.Visibility = Visibility.Visible;
 
                         // Do not start the timer, this will be started in BodyReader_FrameArrived
@@ -319,8 +349,8 @@ namespace KinectDrawing
                         }
                         else
                         {
-                            this.header.Text = "Construct";
-                            this.subHeader.Text = "a new identity with paint";
+                            this.HeaderText = "Construct";
+                            this.SubHeaderText = "a new identity with paint";
 
                             this.currentBrush = GetRandomBrush();
                             this.paintingSession = CreatePaintingSession();
@@ -376,8 +406,8 @@ namespace KinectDrawing
 
                         if (t.Source == State.Painting)
                         {
-                            this.header.Text = "Saved";
-                            this.subHeader.Text = "for future reference";
+                            this.HeaderText = "Saved";
+                            this.SubHeaderText = "for future reference";
                             // TODO: Switch subHeader when done recording
                             // this.subHeader.Text = "to the iPad for future reference";
 

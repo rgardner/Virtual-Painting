@@ -47,8 +47,8 @@
             <Grid Grid.Row="0" Grid.ColumnSpan="3" Background="#2760A3">
                 <TextBlock Text="{Binding PrimaryBodyDistance}" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" Foreground="White" FontSize="20" />
                 <StackPanel>
-                    <TextBlock Name="header" HorizontalAlignment="Center" Text="Smile!" Foreground="#FFF" FontSize="110" VerticalAlignment="Top" />
-                    <TextBlock Name="subHeader" HorizontalAlignment="Center" Text="to capture a base layer image" Foreground="#999B9E" FontSize="60" />
+                    <TextBlock HorizontalAlignment="Center" Text="{Binding HeaderText}" Foreground="#FFF" FontSize="110" VerticalAlignment="Top" />
+                    <TextBlock HorizontalAlignment="Center" Text="{Binding SubHeaderText}" Foreground="#999B9E" FontSize="60" />
                 </StackPanel>
             </Grid>
             <Grid Name="canvasView" Grid.Row="1" Grid.Column="1">
