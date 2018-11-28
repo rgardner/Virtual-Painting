@@ -18,7 +18,9 @@
             <Grid>
                 <Image Name="camera" />
                 <Canvas Name="canvas">
-                    <local:UserPointer x:Name="userPointer" Width="250" Height="250" Canvas.Top="3" Panel.ZIndex="99" Visibility="Collapsed" />
+                    <local:UserPointer Width="250" Height="250" Panel.ZIndex="99" Visibility="{Binding UserPointerVisibility}"
+                                       Canvas.Left="{Binding UserPointerPositionX}" Canvas.Top="{Binding UserPointerPositionY}"
+                                       />
                 </Canvas>
                 <Canvas Name="hitTestingCanvas">
                     <StackPanel Name="hitTestingFrame" />

@@ -86,6 +86,9 @@ namespace KinectDrawing
         private string headerText = Properties.Resources.WaitingForPresenceHeader;
         private string subHeaderText = Properties.Resources.WaitingForPresenceSubHeader;
         private Visibility personOutlineVisibility = Visibility.Visible;
+        private Visibility userPointerVisibility = Visibility.Collapsed;
+        private double userPointerPositionX = 0.0;
+        private double userPointerPositionY = 0.0;
 
         public VirtualPainting()
         {
@@ -214,6 +217,48 @@ namespace KinectDrawing
             }
         }
 
+        public Visibility UserPointerVisibility
+        {
+            get => this.userPointerVisibility;
+
+            private set
+            {
+                if (value != this.userPointerVisibility)
+                {
+                    this.userPointerVisibility = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
+        public double UserPointerPositionX
+        {
+            get => this.userPointerPositionX;
+
+            private set
+            {
+                if (value != this.userPointerPositionX)
+                {
+                    this.userPointerPositionX = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
+        public double UserPointerPositionY
+        {
+            get => this.userPointerPositionY;
+
+            private set
+            {
+                if (value != this.userPointerPositionY)
+                {
+                    this.userPointerPositionY = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
         /// <summary>
         /// INotifyPropertyChanged event to allow window controls to bind to changeable data.
         /// </summary>
@@ -322,7 +367,7 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Waiting for hand to enter frame...");
-                        this.userPointer.Visibility = Visibility.Visible;
+                        this.UserPointerVisibility = Visibility.Visible;
 
                         // Do not start the timer, this will be started in BodyReader_FrameArrived
                         // when the user pointer has entered the canvas.
@@ -332,7 +377,7 @@ namespace KinectDrawing
                     {
                         if (t.Destination != State.Painting)
                         {
-                            this.userPointer.Visibility = Visibility.Collapsed;
+                            this.UserPointerVisibility = Visibility.Collapsed;
                         }
                     })
                 .Permit(Trigger.TimerTick, State.Painting)
@@ -370,12 +415,12 @@ namespace KinectDrawing
                             this.timer.Interval = TimeSpan.FromSeconds(15);
                         }
 
-                        this.userPointer.Visibility = Visibility.Visible;
+                        this.UserPointerVisibility = Visibility.Visible;
                         this.timer.Start();
                     })
                 .OnExit(t =>
                     {
-                        this.userPointer.Visibility = Visibility.Collapsed;
+                        this.UserPointerVisibility = Visibility.Collapsed;
                         if (t.Destination == State.ConfirmingLeavingPainting)
                         {
                             TimeSpan elapsedPaintingSessionTime = DateTime.Now - this.paintingSessionStartTime.Value;
@@ -608,16 +653,15 @@ namespace KinectDrawing
         {
             if (hand.TrackingState != TrackingState.NotTracked)
             {
-                CameraSpacePoint handPosition = hand.Position;
-                ColorSpacePoint handPoint = this.sensor.CoordinateMapper.MapCameraPointToColorSpace(handPosition);
+                ColorSpacePoint handPoint = this.sensor.CoordinateMapper.MapCameraPointToColorSpace(hand.Position);
 
                 var x = handPoint.X;
                 var y = handPoint.Y;
 
                 if (!float.IsInfinity(x) && !float.IsInfinity(y))
                 {
-                    Canvas.SetLeft(this.userPointer, x);
-                    Canvas.SetTop(this.userPointer, y);
+                    this.UserPointerPositionX = x;
+                    this.UserPointerPositionY = y;
                 }
             }
         }
