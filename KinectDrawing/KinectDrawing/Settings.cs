@@ -23,14 +23,21 @@ namespace KinectDrawing
         public const double BodyPresenceAreaRightWidthRatio = 0.71;
         public const double BodyPresenceAreaBottomHeightRatio = 0.97;
 
-        public const double BodyDistanceToCameraThresholdInMeters = 1.5;
+        public const double BodyDistanceFromCameraThresholdInMeters = 1.5;
         public const double BodyDistanceVariationThresholdInMeters = 0.5;
+
+        /// <summary>
+        /// Expected max difference between actual human ratio and expected human ratio.
+        /// Liam McInroy used 0.2f for his value. This is too small for this app because people
+        /// will stand close to the sensor, so there's only really the upper body that is visible.
+        /// </summary>
+        public const double HumanRatioTolerance = 1.0f;
 
         public const string SavedImagesDirectoryPathEnvironmentVariableName = "VirtualPainting_SavedImagesDirectoryPath";
         public const string SavedBackgroundImagesDirectoryPathEnvironmentVariableName = "VirtualPainting_SavedBackgroundImagesDirectoryPath";
 
-        public static readonly bool IsBodyPresenceDebugModeEnabled = false;
-        public static readonly bool IsTestModeEnabled = false;
-        public static readonly bool IsBodyDistanceDebugModeEnabled = false;
+        public static readonly bool IsBodyPresenceDebugModeEnabled = true;
+        public static readonly bool IsTestModeEnabled = true;
+        public static readonly bool IsBodyDistanceDebugModeEnabled = true;
     }
 }
