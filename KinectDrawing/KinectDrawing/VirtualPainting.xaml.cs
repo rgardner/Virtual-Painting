@@ -582,7 +582,7 @@ namespace KinectDrawing
                         for (int i = 0; i < this.bodies.Count; i++)
                         {
                             var body = this.bodies[i];
-                            if (body != null && body.IsTracked && IsBodyInFrame(body) && IsCloseEnoughToCamera(body))
+                            if (body != null && body.IsTracked && IsBodyInFrame(body) && IsCloseEnoughToCamera(body) && IsLikelyHuman(body))
                             {
                                 this.primaryPerson = new Person(i, body.TrackingId);
                                 this.stateMachine.Fire(Trigger.PersonEnters);
@@ -597,7 +597,7 @@ namespace KinectDrawing
                         var primaryBody = this.bodies[this.primaryPerson.BodyIndex];
                         if (primaryBody != null && primaryBody.TrackingId == this.primaryPerson.TrackingId && primaryBody.IsTracked)
                         {
-                            var isPrimaryBodyInFrame = IsBodyInFrame(primaryBody) && IsPrimaryPersonCloseEnoughToCamera(primaryBody);
+                            var isPrimaryBodyInFrame = IsBodyInFrame(primaryBody) && IsPrimaryPersonCloseEnoughToCamera(primaryBody) && IsLikelyHuman(primaryBody);
                             if (this.stateMachine.IsInState(State.ConfirmingLeavingHandPickup)
                                 || this.stateMachine.IsInState(State.ConfirmingLeavingPainting)
                                 || this.stateMachine.IsInState(State.ConfirmingLeavingSavingImage))
@@ -745,6 +745,17 @@ namespace KinectDrawing
             Joint joint = body.Joints[JointType.SpineMid];
             CameraSpacePoint position = joint.Position;
             return Math.Sqrt(Math.Pow(position.X, 2) + Math.Pow(position.Y, 2) + Math.Pow(position.Z, 2));
+        }
+
+        /// <summary>
+        /// https://stackoverflow.com/a/27883660
+        /// </summary>
+        /// <param name="body"></param>
+        /// <returns></returns>
+        private bool IsLikelyHuman(Body body)
+        {
+            // TODO
+            return true;
         }
 
         /// <summary>
