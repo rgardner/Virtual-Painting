@@ -83,6 +83,7 @@ namespace KinectDrawing
         private TimeSpan? paintingSessionTimeRemaining;
         private DateTime? paintingSessionStartTime;
         private Person primaryPerson = null;
+        private bool? isPrimaryBodyHuman = null;
         private string primaryBodyDistance = null;
         private PersonCalibrator personCalibrator;
         private string headerText = Properties.Resources.WaitingForPresenceHeader;
@@ -201,6 +202,20 @@ namespace KinectDrawing
                 if (value != this.primaryBodyDistance)
                 {
                     this.primaryBodyDistance = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
+        public bool? IsPrimaryBodyHuman
+        {
+            get => this.isPrimaryBodyHuman;
+
+            private set
+            {
+                if (value != this.isPrimaryBodyHuman)
+                {
+                    this.isPrimaryBodyHuman = value;
                     NotifyPropertyChanged();
                 }
             }
@@ -587,6 +602,7 @@ namespace KinectDrawing
                             var body = this.bodies[i];
                             if (body != null && body.IsTracked && PersonDetector.IsPersonPresent(body, this.bodyPresenceArea))
                             {
+                                UpdatePrimaryBodyIsHumanIfNeeded(body);
                                 UpdatePrimaryBodyPosition(body);
                                 UpdatePrimaryBodyDistanceIfNeeded(body);
 
@@ -603,6 +619,7 @@ namespace KinectDrawing
                         var primaryBody = this.bodies[this.primaryPerson.BodyIndex];
                         if (primaryBody != null && primaryBody.TrackingId == this.primaryPerson.TrackingId && primaryBody.IsTracked)
                         {
+                            UpdatePrimaryBodyIsHumanIfNeeded(primaryBody);
                             UpdatePrimaryBodyPosition(primaryBody);
                             UpdatePrimaryBodyDistanceIfNeeded(primaryBody);
 
@@ -655,6 +672,14 @@ namespace KinectDrawing
                         }
                     }
                 }
+            }
+        }
+
+        private void UpdatePrimaryBodyIsHumanIfNeeded(Body body)
+        {
+            if (Settings.IsDebugViewEnabled)
+            {
+                this.IsPrimaryBodyHuman = body.IsHuman();
             }
         }
 

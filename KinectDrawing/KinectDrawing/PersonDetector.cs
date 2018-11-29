@@ -15,7 +15,7 @@ namespace KinectDrawing
         /// <summary>
         /// Detects if both shoulders are in the frame.
         /// </summary>
-        private static bool IsInFrame(Body body, Rect frame)
+        public static bool IsInFrame(Body body, Rect frame)
         {
             Joint shoulderLeft = body.Joints[JointType.ShoulderLeft];
             Joint shoulderRight = body.Joints[JointType.ShoulderRight];
@@ -41,7 +41,7 @@ namespace KinectDrawing
             return frame.Contains(bodyX1, bodyY1) && frame.Contains(bodyX2, bodyY2);
         }
 
-        private static bool IsWithinValidDistance(Body body, double maxExpectedDistance)
+        public static bool IsWithinValidDistance(Body body, double maxExpectedDistance)
         {
             return body.DistanceFromSensor() < maxExpectedDistance;
         }
