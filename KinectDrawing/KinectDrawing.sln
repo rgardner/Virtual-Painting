@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28307.106
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KinectDrawing", "KinectDrawing\KinectDrawing.csproj", "{E3F7B08E-6FBC-4553-B732-46634D8D63DF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualRepainter", "VirtualRepainter\VirtualRepainter.csproj", "{EB55B409-B42F-4030-97EF-86EFEFD26859}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,14 @@ Global
 		{E3F7B08E-6FBC-4553-B732-46634D8D63DF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E3F7B08E-6FBC-4553-B732-46634D8D63DF}.Release|x64.ActiveCfg = Release|x64
 		{E3F7B08E-6FBC-4553-B732-46634D8D63DF}.Release|x64.Build.0 = Release|x64
+		{EB55B409-B42F-4030-97EF-86EFEFD26859}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB55B409-B42F-4030-97EF-86EFEFD26859}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB55B409-B42F-4030-97EF-86EFEFD26859}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EB55B409-B42F-4030-97EF-86EFEFD26859}.Debug|x64.Build.0 = Debug|Any CPU
+		{EB55B409-B42F-4030-97EF-86EFEFD26859}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB55B409-B42F-4030-97EF-86EFEFD26859}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EB55B409-B42F-4030-97EF-86EFEFD26859}.Release|x64.ActiveCfg = Release|Any CPU
+		{EB55B409-B42F-4030-97EF-86EFEFD26859}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
