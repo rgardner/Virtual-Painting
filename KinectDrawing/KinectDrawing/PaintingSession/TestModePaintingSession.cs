@@ -16,75 +16,12 @@ namespace KinectDrawing.PaintingSession
 {
     class TestModePaintingSession : IPaintingSession
     {
-        private class RawJointData
-        {
-            public float X { get; set; }
-            public float Y { get; set; }
-            public float CameraX { get; set; }
-            public float CameraY { get; set; }
-            public float CameraZ { get; set; }
-            public TrackingState TrackingState { get; set; }
-
-            public RawJointData(Joint joint, KinectSensor sensor)
-            {
-                CameraSpacePoint cameraSpacePoint = joint.Position;
-                ColorSpacePoint colorSpacePoint = sensor.CoordinateMapper.MapCameraPointToColorSpace(cameraSpacePoint);
-
-                this.CameraX = cameraSpacePoint.X;
-                this.CameraY = cameraSpacePoint.Y;
-                this.CameraZ = cameraSpacePoint.Z;
-                this.X = colorSpacePoint.X;
-                this.Y = colorSpacePoint.Y;
-                this.TrackingState = joint.TrackingState;
-            }
-
-            public static string GetCSVHeader(JointType jointType)
-            {
-                return $"{jointType}_X,{jointType}_Y,{jointType}_CameraX,{jointType}_CameraY,{jointType}_CameraZ,{jointType}_TrackingState";
-            }
-
-            public string ToCSV()
-            {
-                return $"{this.X},{this.Y},{this.CameraX},{this.CameraY},{this.CameraZ},{this.TrackingState}";
-            }
-        }
-
-        private class RawBodyFrameData
-        {
-            public RawJointData HandTip { get; set; }
-            public RawJointData Hand { get; set; }
-            public RawJointData Wrist { get; set; }
-            public RawJointData Elbow { get; set; }
-
-            public RawBodyFrameData(Body body, KinectSensor sensor)
-            {
-                this.HandTip = new RawJointData(body.Joints[JointType.HandTipRight], sensor);
-                this.Hand = new RawJointData(body.Joints[JointType.HandRight], sensor);
-                this.Wrist = new RawJointData(body.Joints[JointType.WristRight], sensor);
-                this.Elbow = new RawJointData(body.Joints[JointType.ElbowRight], sensor);
-            }
-
-            public static string GetCSVHeader()
-            {
-                return $"{RawJointData.GetCSVHeader(JointType.HandTipRight)},"
-                    + $"{RawJointData.GetCSVHeader(JointType.HandRight)},"
-                    + $"{RawJointData.GetCSVHeader(JointType.WristRight)},"
-                    + $"{RawJointData.GetCSVHeader(JointType.ElbowRight)}";
-            }
-
-            public string ToCSV()
-            {
-                return $"{this.HandTip.ToCSV()},{this.Hand.ToCSV()},{this.Wrist.ToCSV()},{this.Elbow.ToCSV()}";
-            }
-        }
-
         private readonly KinectSensor sensor;
         private readonly IPaintAlgorithm paintAlgorithm;
         private Brush brush;
         private readonly BrushColorCycler brushColorCycler = new BrushColorCycler();
         private readonly BackgroundWorker backgroundWorker = new BackgroundWorker();
 
-        private IList<RawBodyFrameData> rawBodyFrameDataPoints = new List<RawBodyFrameData>();
         private readonly SensorRecorder sensorRecorder = new SensorRecorder();
 
         public TestModePaintingSession(KinectSensor sensor, IPaintAlgorithm paintAlgorithm)
@@ -111,28 +48,28 @@ namespace KinectDrawing.PaintingSession
                     SaveRenderTargetBitmapAsPng(background, backgroundFilePath);
 
                     // Save the raw body frame data points
-                    string rawBodyFrameDataFilePath = Path.Combine(directoryPath, "raw_body_frame_data.csv");
-                    var handFrameDataPointStrings = this.rawBodyFrameDataPoints.Select(d => d.ToCSV());
+                    string csvSerializedSensorDataFilePath = Path.Combine(directoryPath, "sensor_data.csv");
 
-                    using (var file = new StreamWriter(rawBodyFrameDataFilePath))
+                    using (var file = new StreamWriter(csvSerializedSensorDataFilePath))
                     {
-                        file.WriteLine(RawBodyFrameData.GetCSVHeader());
-                        foreach (var dataPoint in handFrameDataPointStrings)
+                        file.WriteLine(SensorBody.GetCsvHeader());
+                        foreach (var sensorBodyFrame in this.sensorRecorder.SensorData.BodyFrames)
                         {
-                            file.WriteLine(dataPoint);
+                            string[] csvSerializedBodies = sensorBodyFrame.Bodies.Select(b => b.SerializeToCsv()).ToArray();
+                            file.WriteLine(string.Join(",", csvSerializedBodies));
                         }
                     }
 
-                    string serializedSensorData = JsonConvert.SerializeObject(this.sensorRecorder.SensorData);
-                    string filePath = Path.Combine(directoryPath, "sensor_data.json");
-                    File.WriteAllText(filePath, serializedSensorData);
+                    string jsonSerializedSensorData = JsonConvert.SerializeObject(this.sensorRecorder.SensorData);
+                    string jsonSerializedSensorDataFilePath = Path.Combine(directoryPath, "sensor_data.json");
+                    File.WriteAllText(jsonSerializedSensorDataFilePath, jsonSerializedSensorData);
                 };
         }
 
         public void Paint(Body body, Brush brush, Canvas canvas, BodyFrame bodyFrame)
         {
             // Cycle color every 50 points to ease debugging
-            bool startNewSubSession = (this.rawBodyFrameDataPoints.Count % 50) == 0;
+            bool startNewSubSession = (this.sensorRecorder.SensorData.BodyFrames.Count % 50) == 0;
             if (startNewSubSession)
             {
                 this.brush = this.brushColorCycler.Next();
@@ -140,10 +77,7 @@ namespace KinectDrawing.PaintingSession
 
             this.paintAlgorithm.Paint(body, this.brush, canvas, startNewSubSession);
 
-            // Log data points
-            var frameData = new RawBodyFrameData(body, this.sensor);
-            this.rawBodyFrameDataPoints.Add(frameData);
-            this.sensorRecorder.LogBodyFrame(bodyFrame);
+            this.sensorRecorder.LogBodyFrame(bodyFrame, this.sensor);
         }
 
         public void SavePainting(Image background, Canvas canvas, int width, int height, string directoryPath, string backgroundDirectoryPath)

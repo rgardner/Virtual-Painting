@@ -3,10 +3,9 @@ using Newtonsoft.Json;
 
 namespace KinectRecorder
 {
-    [JsonObject()]
+    [JsonObject(MemberSerialization.OptOut)]
     public class SensorData
     {
-        [JsonProperty]
         public List<SensorBodyFrame> BodyFrames { get; set; } = new List<SensorBodyFrame>();
     }
 }
