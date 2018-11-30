@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KinectDrawing", "KinectDraw
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VirtualRepainter", "VirtualRepainter\VirtualRepainter.csproj", "{EB55B409-B42F-4030-97EF-86EFEFD26859}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KinectRecorder", "KinectRecorder\KinectRecorder.csproj", "{DA0087C3-FE14-4D77-9159-617829441057}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -31,6 +33,14 @@ Global
 		{EB55B409-B42F-4030-97EF-86EFEFD26859}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EB55B409-B42F-4030-97EF-86EFEFD26859}.Release|x64.ActiveCfg = Release|Any CPU
 		{EB55B409-B42F-4030-97EF-86EFEFD26859}.Release|x64.Build.0 = Release|Any CPU
+		{DA0087C3-FE14-4D77-9159-617829441057}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DA0087C3-FE14-4D77-9159-617829441057}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DA0087C3-FE14-4D77-9159-617829441057}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{DA0087C3-FE14-4D77-9159-617829441057}.Debug|x64.Build.0 = Debug|Any CPU
+		{DA0087C3-FE14-4D77-9159-617829441057}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DA0087C3-FE14-4D77-9159-617829441057}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DA0087C3-FE14-4D77-9159-617829441057}.Release|x64.ActiveCfg = Release|Any CPU
+		{DA0087C3-FE14-4D77-9159-617829441057}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

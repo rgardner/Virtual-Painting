@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:VirtualRepainter"
              xmlns:local1="clr-namespace:KinectDrawing;assembly=KinectDrawing"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800">
+             d:DesignHeight="1280" d:DesignWidth="1900">
 
     <UserControl.DataContext>
         <local:VirtualRepainterViewModel />
@@ -80,17 +80,14 @@
                     </Label>
                 </StackPanel>
                 <StackPanel>
-                    <TextBlock HorizontalAlignment="Center" Text="{Binding HeaderText}" Foreground="#FFF" FontSize="110" VerticalAlignment="Top" />
-                    <TextBlock HorizontalAlignment="Center" Text="{Binding SubHeaderText}" Foreground="#999B9E" FontSize="60" />
+                    <TextBlock HorizontalAlignment="Center" Text="Virtual Repainter" Foreground="#FFF" FontSize="110" VerticalAlignment="Top" />
                 </StackPanel>
             </Grid>
             <Grid Name="canvasView" Grid.Row="1" Grid.Column="1">
-                <Viewbox>
-                    <local1:PersonOutline Visibility="{Binding PersonOutlineVisibility}"  Width="600" Height="500" Margin="-200,-50,0,0"/>
-                </Viewbox>
-                <TextBlock Text="{Binding CountdownValue}" FontSize="150" HorizontalAlignment="Center"
-                           VerticalAlignment="Center" Opacity=".75" Foreground="#2760A3" />
-                <Rectangle Name="flashOverlay" Fill="White" Opacity="0" />
+                <StackPanel VerticalAlignment="Center">
+                    <Button Content="Open Virtual Painting Recording" Command="{Binding Path=OpenFindRecordingFileDialogCommand}" />
+                    <Button Content="Open Virtual Painting Background Image" Command="{Binding Path=OpenFindBackgroundImageFileDialogCommand}" />
+                </StackPanel>
             </Grid>
         </Grid>
     </Grid>

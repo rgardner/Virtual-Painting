@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -13,8 +14,9 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using KinectDrawing.PaintAlgorithm;
 using KinectDrawing.PaintingSession;
-using LightBuzz.Vitruvius;
+using KinectRecorder;
 using Microsoft.Kinect;
+using Newtonsoft.Json;
 using Stateless;
 
 namespace KinectDrawing
@@ -135,6 +137,7 @@ namespace KinectDrawing
         private const double HumanRatioTolerance = 0.2f;
 
         private PersonDetectionState? primaryPersonDetectionState = null;
+        private readonly SensorRecorder sensorRecorder = new SensorRecorder();
 
         public VirtualPainting()
         {
@@ -148,6 +151,12 @@ namespace KinectDrawing
                     this.colorReader?.Dispose();
                     this.bodyReader?.Dispose();
                     this.sensor?.Close();
+
+                    string serializedSensorData = JsonConvert.SerializeObject(this.sensorRecorder.SensorData);
+                    string directoryPath = GetSavedBackgroundImagesDirectoryPath();
+                    string currentTime = DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss");
+                    string filePath = System.IO.Path.Combine(directoryPath, currentTime + ".json");
+                    File.WriteAllText(serializedSensorData, filePath);
                 };
 
             this.timer.Tick += (s, e) =>
@@ -631,6 +640,8 @@ namespace KinectDrawing
             {
                 if (frame != null)
                 {
+                    this.sensorRecorder.LogColorFrame(frame);
+
                     frame.CopyConvertedFrameDataToArray(this.pixels, ColorImageFormat.Bgra);
 
                     this.bitmap.Lock();
@@ -647,6 +658,8 @@ namespace KinectDrawing
             {
                 if (frame != null)
                 {
+                    this.sensorRecorder.LogBodyFrame(frame);
+
                     frame.GetAndRefreshBodyData(this.bodies);
 
                     if (this.primaryPerson == null)
