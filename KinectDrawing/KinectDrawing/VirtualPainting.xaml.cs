@@ -640,8 +640,6 @@ namespace KinectDrawing
             {
                 if (frame != null)
                 {
-                    this.sensorRecorder.LogColorFrame(frame);
-
                     frame.CopyConvertedFrameDataToArray(this.pixels, ColorImageFormat.Bgra);
 
                     this.bitmap.Lock();
