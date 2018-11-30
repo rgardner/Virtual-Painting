@@ -59,6 +59,46 @@ namespace KinectDrawing
             public double ExpectedMaxDistance => MedianDistanceFromCameraInMeters + Settings.BodyDistanceVariationThresholdInMeters;
         }
 
+        public struct PersonDetectionState
+        {
+            public PersonDetectionState(Body body, Rect frame) : this()
+            {
+                this.IsHuman = body.IsHuman();
+                this.IsInFrame = PersonDetector.IsInFrame(body, frame);
+                this.DistanceFromSensor = body.DistanceFromSensor();
+            }
+
+            public bool IsHuman { get; }
+            public bool IsInFrame { get; }
+            public double DistanceFromSensor { get; }
+
+            public static bool operator==(PersonDetectionState first, PersonDetectionState second)
+            {
+                return (first.IsHuman == second.IsHuman)
+                    && (first.IsInFrame == second.IsInFrame)
+                    && (first.DistanceFromSensor == second.DistanceFromSensor);
+            }
+
+            public static bool operator!=(PersonDetectionState first, PersonDetectionState second)
+            {
+                return !(first == second);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return base.Equals(obj);
+            }
+
+            public override int GetHashCode()
+            {
+                var hashCode = -1494063407;
+                hashCode = hashCode * -1521134295 + this.IsHuman.GetHashCode();
+                hashCode = hashCode * -1521134295 + this.IsInFrame.GetHashCode();
+                hashCode = hashCode * -1521134295 + this.DistanceFromSensor.GetHashCode();
+                return hashCode;
+            }
+        }
+
         private readonly StateMachine<State, Trigger> stateMachine = new StateMachine<State, Trigger>(State.WaitingForPresence);
 
         private readonly DispatcherTimer timer = new DispatcherTimer();
@@ -93,6 +133,8 @@ namespace KinectDrawing
         private double userPointerPositionX = 0.0;
         private double userPointerPositionY = 0.0;
         private const double HumanRatioTolerance = 0.2f;
+
+        private PersonDetectionState? primaryPersonDetectionState = null;
 
         public VirtualPainting()
         {
@@ -142,7 +184,7 @@ namespace KinectDrawing
                 var frameX2 = Settings.BodyPresenceAreaRightWidthRatio * this.width;
                 var frameY2 = Settings.BodyPresenceAreaBottomHeightRatio * this.height;
                 this.bodyPresenceArea = new Rect(frameX1, frameY1, frameX2 - frameX1, frameY2 - frameY1);
-                if (Settings.IsBodyPresenceDebugModeEnabled)
+                if (Settings.IsDebugViewEnabled)
                 {
                     DrawRect(this.bodyPresenceArea, this.hitTestingFrame);
                 }
@@ -188,6 +230,20 @@ namespace KinectDrawing
                 if (value != this.countdownValue)
                 {
                     this.countdownValue = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
+        public PersonDetectionState? PrimaryPersonDetectionState
+        {
+            get => this.primaryPersonDetectionState;
+
+            private set
+            {
+                if (value != this.primaryPersonDetectionState)
+                {
+                    this.primaryPersonDetectionState = value;
                     NotifyPropertyChanged();
                 }
             }
@@ -602,9 +658,7 @@ namespace KinectDrawing
                             var body = this.bodies[i];
                             if (body != null && body.IsTracked && PersonDetector.IsPersonPresent(body, this.bodyPresenceArea))
                             {
-                                UpdatePrimaryBodyIsHumanIfNeeded(body);
-                                UpdatePrimaryBodyPosition(body);
-                                UpdatePrimaryBodyDistanceIfNeeded(body);
+                                UpdatePrimaryPersonDetectionStateIfNeeded(body);
 
                                 this.primaryPerson = new Person(i, body.TrackingId);
                                 this.stateMachine.Fire(Trigger.PersonEnters);
@@ -619,9 +673,7 @@ namespace KinectDrawing
                         var primaryBody = this.bodies[this.primaryPerson.BodyIndex];
                         if (primaryBody != null && primaryBody.TrackingId == this.primaryPerson.TrackingId && primaryBody.IsTracked)
                         {
-                            UpdatePrimaryBodyIsHumanIfNeeded(primaryBody);
-                            UpdatePrimaryBodyPosition(primaryBody);
-                            UpdatePrimaryBodyDistanceIfNeeded(primaryBody);
+                            UpdatePrimaryPersonDetectionStateIfNeeded(primaryBody);
 
                             var isPrimaryPersonPresent = PersonDetector.IsPersonPresent(primaryBody, this.bodyPresenceArea, this.primaryPerson.ExpectedMaxDistance);
                             if (this.stateMachine.IsInState(State.ConfirmingLeavingHandPickup)
@@ -675,20 +727,14 @@ namespace KinectDrawing
             }
         }
 
-        private void UpdatePrimaryBodyIsHumanIfNeeded(Body body)
+        private void UpdatePrimaryPersonDetectionStateIfNeeded(Body primaryBody)
         {
             if (Settings.IsDebugViewEnabled)
             {
-                this.IsPrimaryBodyHuman = body.IsHuman();
-            }
-        }
+                this.PrimaryPersonDetectionState = new PersonDetectionState(primaryBody, this.bodyPresenceArea);
 
-        private void UpdatePrimaryBodyPosition(Body body)
-        {
-            if (Settings.IsBodyPresenceDebugModeEnabled)
-            {
-                Joint shoulderLeft = body.Joints[JointType.ShoulderLeft];
-                Joint shoulderRight = body.Joints[JointType.ShoulderRight];
+                Joint shoulderLeft = primaryBody.Joints[JointType.ShoulderLeft];
+                Joint shoulderRight = primaryBody.Joints[JointType.ShoulderRight];
 
                 if ((shoulderLeft.TrackingState == TrackingState.NotTracked) || (shoulderRight.TrackingState == TrackingState.NotTracked))
                 {
@@ -709,14 +755,6 @@ namespace KinectDrawing
 
                 var bodyRect = new Rect(bodyX1, bodyY1, Math.Abs(bodyX2 - bodyX1), Math.Abs(bodyY2 - bodyY1));
                 DrawRect(bodyRect, this.hitTestingBody);
-            }
-        }
-
-        private void UpdatePrimaryBodyDistanceIfNeeded(Body body)
-        {
-            if (Settings.IsBodyDistanceDebugModeEnabled)
-            {
-                this.PrimaryBodyDistance = $"Distance: {body.DistanceFromSensor()}m";
             }
         }
 
