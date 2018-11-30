@@ -4,13 +4,94 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:VirtualRepainter"
+             xmlns:local1="clr-namespace:KinectDrawing;assembly=KinectDrawing"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+
     <UserControl.DataContext>
         <local:VirtualRepainterViewModel />
     </UserControl.DataContext>
 
     <Grid>
-            
+        <Viewbox>
+            <Grid>
+                <Image Source="{Binding CameraImageSource}" />
+                <Canvas>
+                    <local1:UserPointer Width="250" Height="250" Panel.ZIndex="99" Visibility="{Binding UserPointerVisibility}"
+                                       Canvas.Left="{Binding UserPointerPositionX}" Canvas.Top="{Binding UserPointerPositionY}"
+                                       />
+                </Canvas>
+            </Grid>
+        </Viewbox>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="0.3*" />
+                <RowDefinition />
+                <RowDefinition Height="0.1*" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="0.6*" />
+                <ColumnDefinition />
+                <ColumnDefinition Width="0.6*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Span all 3 rows/columns to avoid visual artifacts (white lines) from the camera feed.
+                 Do this first so that the nonempty grid sections are drawn on top. -->
+            <Rectangle Grid.RowSpan="3" Grid.Column="0" Fill="#2760A3" />
+            <Rectangle Grid.RowSpan="3" Grid.Column="2" Fill="#2760A3"/>
+            <Rectangle Grid.Row="2" Grid.ColumnSpan="3" Fill="#2760A3"/>
+
+            <Grid Grid.Row="0" Grid.ColumnSpan="3" Background="#2760A3">
+                <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0">
+                    <Label Foreground="White" FontSize="20">
+                        <Label.Style>
+                            <Style TargetType="Label">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=PrimaryPersonDetectionState.IsHuman}" Value="True">
+                                        <Setter Property="Content" Value="IsHuman: Yes" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Path=PrimaryPersonDetectionState.IsHuman}" Value="False">
+                                        <Setter Property="Content" Value="IsHuman: No" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Path=PrimaryPersonDetectionState.IsHuman}" Value="null">
+                                        <Setter Property="Content" Value="" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Label.Style>
+                    </Label>
+                    <Label Content="{Binding PrimaryPersonDetectionState.DistanceFromSensor}" ContentStringFormat="Distance: {0}m" Foreground="White" FontSize="20" />
+                    <Label Foreground="White" FontSize="20">
+                        <Label.Style>
+                            <Style TargetType="Label">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Path=PrimaryPersonDetectionState.IsInFrame}" Value="True">
+                                        <Setter Property="Content" Value="IsInFrame: Yes" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Path=PrimaryPersonDetectionState.IsInFrame}" Value="False">
+                                        <Setter Property="Content" Value="IsInFrame: No" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding Path=PrimaryPersonDetectionState.IsInFrame}" Value="null">
+                                        <Setter Property="Content" Value="" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Label.Style>
+                    </Label>
+                </StackPanel>
+                <StackPanel>
+                    <TextBlock HorizontalAlignment="Center" Text="{Binding HeaderText}" Foreground="#FFF" FontSize="110" VerticalAlignment="Top" />
+                    <TextBlock HorizontalAlignment="Center" Text="{Binding SubHeaderText}" Foreground="#999B9E" FontSize="60" />
+                </StackPanel>
+            </Grid>
+            <Grid Name="canvasView" Grid.Row="1" Grid.Column="1">
+                <Viewbox>
+                    <local1:PersonOutline Visibility="{Binding PersonOutlineVisibility}"  Width="600" Height="500" Margin="-200,-50,0,0"/>
+                </Viewbox>
+                <TextBlock Text="{Binding CountdownValue}" FontSize="150" HorizontalAlignment="Center"
+                           VerticalAlignment="Center" Opacity=".75" Foreground="#2760A3" />
+                <Rectangle Name="flashOverlay" Fill="White" Opacity="0" />
+            </Grid>
+        </Grid>
     </Grid>
 </UserControl>
