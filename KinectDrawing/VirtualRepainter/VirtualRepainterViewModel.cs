@@ -53,8 +53,8 @@ namespace VirtualRepainter
         public ImageSource CameraImageSource { get; private set; }
 
         public Visibility UserPointerVisibility { get; private set; } = Visibility.Collapsed;
-        public int UserPointerPositionX { get; private set; }
-        public int UserPointerPositionY { get; private set; }
+        public int UserPointerPositionX { get; private set; } = 0;
+        public int UserPointerPositionY { get; private set; } = 0;
 
         public ICommand OpenFindRecordingFileDialogCommand { get; }
         public ICommand OpenFindBackgroundImageFileDialogCommand { get; }

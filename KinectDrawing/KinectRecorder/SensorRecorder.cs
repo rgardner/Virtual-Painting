@@ -12,7 +12,7 @@ namespace KinectRecorder
 
         public void LogBodyFrame(BodyFrame bodyFrame)
         {
-            // TODO
+            this.SensorData.BodyFrames.Add(new SensorBodyFrame(bodyFrame));
         }
     }
 }

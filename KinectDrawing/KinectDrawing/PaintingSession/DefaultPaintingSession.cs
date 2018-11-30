@@ -56,9 +56,9 @@ namespace KinectDrawing.PaintingSession
                 };
         }
 
-        public void Paint(Body body, System.Windows.Media.Brush brush, Canvas canvas, bool startNewSubSession)
+        public void Paint(Body body, System.Windows.Media.Brush brush, Canvas canvas, BodyFrame bodyFrame)
         {
-            this.paintingAlgorithm.Paint(body, brush, canvas, startNewSubSession);
+            this.paintingAlgorithm.Paint(body, brush, canvas);
         }
 
         public void SavePainting(System.Windows.Controls.Image background, Canvas canvas, int width, int height,

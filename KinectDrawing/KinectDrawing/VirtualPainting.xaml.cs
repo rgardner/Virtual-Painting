@@ -14,9 +14,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using KinectDrawing.PaintAlgorithm;
 using KinectDrawing.PaintingSession;
-using KinectRecorder;
 using Microsoft.Kinect;
-using Newtonsoft.Json;
 using Stateless;
 
 namespace KinectDrawing
@@ -137,7 +135,6 @@ namespace KinectDrawing
         private const double HumanRatioTolerance = 0.2f;
 
         private PersonDetectionState? primaryPersonDetectionState = null;
-        private readonly SensorRecorder sensorRecorder = new SensorRecorder();
 
         public VirtualPainting()
         {
@@ -152,11 +149,6 @@ namespace KinectDrawing
                     this.bodyReader?.Dispose();
                     this.sensor?.Close();
 
-                    string serializedSensorData = JsonConvert.SerializeObject(this.sensorRecorder.SensorData);
-                    string directoryPath = GetSavedBackgroundImagesDirectoryPath();
-                    string currentTime = DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss");
-                    string filePath = System.IO.Path.Combine(directoryPath, currentTime + ".json");
-                    File.WriteAllText(serializedSensorData, filePath);
                 };
 
             this.timer.Tick += (s, e) =>
@@ -656,8 +648,6 @@ namespace KinectDrawing
             {
                 if (frame != null)
                 {
-                    this.sensorRecorder.LogBodyFrame(frame);
-
                     frame.GetAndRefreshBodyData(this.bodies);
 
                     if (this.primaryPerson == null)
@@ -724,7 +714,7 @@ namespace KinectDrawing
                                     }
                                     else if (this.stateMachine.IsInState(State.Painting))
                                     {
-                                        this.paintingSession.Paint(primaryBody, this.currentBrush, this.canvas);
+                                        this.paintingSession.Paint(primaryBody, this.currentBrush, this.canvas, frame);
                                     }
                                 }
                             }

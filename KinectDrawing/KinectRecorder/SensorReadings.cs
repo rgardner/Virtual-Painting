@@ -7,12 +7,6 @@ namespace KinectRecorder
     public class SensorData
     {
         [JsonProperty]
-        public List<SensorBodyFrame> BodyFrames { get; set; }
-
-        [JsonProperty]
-        public int ColorFrameDescriptionWidth { get; set; }
-
-        [JsonProperty]
-        public int ColorFrameDescriptionHeight { get; set; }
+        public List<SensorBodyFrame> BodyFrames { get; set; } = new List<SensorBodyFrame>();
     }
 }

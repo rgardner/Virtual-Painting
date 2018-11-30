@@ -8,7 +8,9 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using KinectDrawing.PaintAlgorithm;
+using KinectRecorder;
 using Microsoft.Kinect;
+using Newtonsoft.Json;
 
 namespace KinectDrawing.PaintingSession
 {
@@ -83,6 +85,7 @@ namespace KinectDrawing.PaintingSession
         private readonly BackgroundWorker backgroundWorker = new BackgroundWorker();
 
         private IList<RawBodyFrameData> rawBodyFrameDataPoints = new List<RawBodyFrameData>();
+        private readonly SensorRecorder sensorRecorder = new SensorRecorder();
 
         public TestModePaintingSession(KinectSensor sensor, IPaintAlgorithm paintAlgorithm)
         {
@@ -119,10 +122,14 @@ namespace KinectDrawing.PaintingSession
                             file.WriteLine(dataPoint);
                         }
                     }
+
+                    string serializedSensorData = JsonConvert.SerializeObject(this.sensorRecorder.SensorData);
+                    string filePath = Path.Combine(directoryPath, "sensor_data.json");
+                    File.WriteAllText(filePath, serializedSensorData);
                 };
         }
 
-        public void Paint(Body body, Brush brush, Canvas canvas, bool _startNewSubSession)
+        public void Paint(Body body, Brush brush, Canvas canvas, BodyFrame bodyFrame)
         {
             // Cycle color every 50 points to ease debugging
             bool startNewSubSession = (this.rawBodyFrameDataPoints.Count % 50) == 0;
@@ -136,6 +143,7 @@ namespace KinectDrawing.PaintingSession
             // Log data points
             var frameData = new RawBodyFrameData(body, this.sensor);
             this.rawBodyFrameDataPoints.Add(frameData);
+            this.sensorRecorder.LogBodyFrame(bodyFrame);
         }
 
         public void SavePainting(Image background, Canvas canvas, int width, int height, string directoryPath, string backgroundDirectoryPath)
