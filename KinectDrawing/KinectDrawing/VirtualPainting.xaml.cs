@@ -69,9 +69,13 @@ namespace KinectDrawing
             private bool isInFrame = false;
             private string distanceFromSensor = string.Empty;
 
-            public PersonDetectionState(int bodyIndex)
+            public PersonDetectionState(int bodyIndex, bool? isPrimary = null, Body body = null, Rect? bodyPresenceArea = null)
             {
                 this.BodyIndex = bodyIndex;
+                if (isPrimary.HasValue && body != null && bodyPresenceArea.HasValue)
+                {
+                    Refresh(isPrimary.Value, body, bodyPresenceArea.Value);
+                }
             }
 
             public int BodyIndex
@@ -139,9 +143,27 @@ namespace KinectDrawing
                 }
             }
 
+            public void Refresh(bool isPrimary, Body body, Rect bodyPresenceArea)
+            {
+                this.IsPrimary = isPrimary;
+                this.IsHuman = body.IsHuman();
+                this.IsInFrame = PersonDetector.IsInFrame(body, bodyPresenceArea);
+                this.DistanceFromSensor = body.DistanceFromSensor().ToString("0.00");
+            }
+
             public static bool operator==(PersonDetectionState first, PersonDetectionState second)
             {
+                if (first is null && second is null)
+                {
+                    return true;
+                }
+                else if (first is null || second is null)
+                {
+                    return false;
+                }
+
                 return (first.IsHuman == second.IsHuman)
+                    && (first.IsHuman == second.IsHuman)
                     && (first.IsInFrame == second.IsInFrame)
                     && (first.DistanceFromSensor == second.DistanceFromSensor);
             }
@@ -199,7 +221,7 @@ namespace KinectDrawing
         private double userPointerPositionY = 0.0;
         private const double HumanRatioTolerance = 0.2f;
 
-        private List<PersonDetectionState> personDetectionStates;
+        private ObservableCollection<PersonDetectionState> personDetectionStates = new ObservableCollection<PersonDetectionState>();
 
         public VirtualPainting()
         {
@@ -242,12 +264,6 @@ namespace KinectDrawing
                 this.bitmap = new WriteableBitmap(this.width, this.height, 96.0, 96.0, PixelFormats.Bgra32, null);
 
                 this.bodies = new Body[this.sensor.BodyFrameSource.BodyCount];
-
-                this.PersonDetectionStates = new List<PersonDetectionState>(this.bodies.Count);
-                for (int i = 0; i < this.bodies.Count; i++)
-                {
-                    this.PersonDetectionStates.Add(new PersonDetectionState(i));
-                }
 
                 this.camera.Source = this.bitmap;
 
@@ -307,7 +323,7 @@ namespace KinectDrawing
             }
         }
 
-        public List<PersonDetectionState> PersonDetectionStates
+        public ObservableCollection<PersonDetectionState> PersonDetectionStates
         {
             get => this.personDetectionStates;
 
@@ -777,17 +793,45 @@ namespace KinectDrawing
             }
         }
 
-        private void UpdatePersonDetectionStatesIfNeeded()
+        private void RefreshPersonDetectionStates()
         {
             if (Settings.IsDebugViewEnabled)
             {
                 for (int i = 0; i < this.bodies.Count; i++)
                 {
-                    this.PersonDetectionStates[i].IsPrimary = (i == this.primaryPerson?.BodyIndex);
-                    this.PersonDetectionStates[i].IsHuman = this.bodies[i].IsHuman();
-                    this.PersonDetectionStates[i].IsInFrame = PersonDetector.IsInFrame(this.bodies[i], this.bodyPresenceArea);
-                    this.PersonDetectionStates[i].DistanceFromSensor = this.bodies[i].DistanceFromSensor().ToString("0.00");
+                    Body body = this.bodies[i];
+                    PersonDetectionState personDetectionState = this.PersonDetectionStates.Where(b => b.BodyIndex == i).FirstOrDefault();
+                    if (body == null || !body.IsTracked)
+                    {
+                        // Remove previously tracked person
+                        if (personDetectionState != null)
+                        {
+                            this.PersonDetectionStates.Remove(personDetectionState);
+                        }
+                    }
+                    else
+                    {
+                        bool isPrimary = (i == this.primaryPerson?.BodyIndex);
+                        if (personDetectionState == null)
+                        {
+                            // Add new person
+                            this.PersonDetectionStates.Add(new PersonDetectionState(i, isPrimary, body, this.bodyPresenceArea));
+                        }
+                        else
+                        {
+                            // Refresh existing person
+                            personDetectionState.Refresh(isPrimary, body, this.bodyPresenceArea);                            
+                        }
+                    }
                 }
+            }
+        }
+
+        private void UpdatePersonDetectionStatesIfNeeded()
+        {
+            if (Settings.IsDebugViewEnabled)
+            {
+                RefreshPersonDetectionStates();
 
                 if (this.primaryPerson == null)
                 {
