@@ -13,7 +13,7 @@ namespace KinectDrawing.PaintAlgorithm
         public void Paint(SensorBody body, Brush brush, Canvas canvas, bool _startNewSubSession)
         {
             var hand = body.HandRight;
-            if (hand.TrackingState != SensorTrackingState.NotTracked)
+            if (hand.TrackingState == SensorTrackingState.Tracked)
             {
                 var handPoint = new FloatPoint(hand.X, hand.Y);
                 if (!handPoint.IsInfinity())
