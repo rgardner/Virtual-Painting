@@ -66,12 +66,12 @@ namespace KinectDrawing
             {
                 this.IsHuman = body.IsHuman();
                 this.IsInFrame = PersonDetector.IsInFrame(body, frame);
-                this.DistanceFromSensor = body.DistanceFromSensor();
+                this.DistanceFromSensor = body.DistanceFromSensor().ToString("0.00");
             }
 
             public bool IsHuman { get; }
             public bool IsInFrame { get; }
-            public double DistanceFromSensor { get; }
+            public string DistanceFromSensor { get; }
 
             public static bool operator==(PersonDetectionState first, PersonDetectionState second)
             {
