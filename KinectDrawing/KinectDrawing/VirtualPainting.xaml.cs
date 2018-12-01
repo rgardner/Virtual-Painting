@@ -370,7 +370,11 @@ namespace KinectDrawing
                     {
                         Debug.WriteLine("Waiting for presence...");
                         this.PersonOutlineVisibility = Visibility.Visible;
-                        this.colorReader.IsPaused = false;
+                        if (!Settings.IsTestModeEnabled)
+                        {
+                            this.colorReader.IsPaused = false;
+                        }
+
                         this.primaryPerson = null;
                     })
                 .Permit(Trigger.PersonEnters, State.ConfirmingPresence);
@@ -431,7 +435,10 @@ namespace KinectDrawing
                         this.PersonOutlineVisibility = Visibility.Collapsed;
                         FlashWindow();
 
-                        this.colorReader.IsPaused = true;
+                        if (!Settings.IsTestModeEnabled)
+                        {
+                            this.colorReader.IsPaused = true;
+                        }
 
                         this.timer.Interval = TimeSpan.FromSeconds(0.75);
                         this.timer.Start();
