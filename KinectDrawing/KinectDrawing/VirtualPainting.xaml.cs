@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -60,18 +61,76 @@ namespace KinectDrawing
             public double ExpectedMaxDistance => MedianDistanceFromCameraInMeters + Settings.BodyDistanceVariationThresholdInMeters;
         }
 
-        public struct PersonDetectionState
+        public class PersonDetectionState : INotifyPropertyChanged
         {
-            public PersonDetectionState(Body body, Rect frame) : this()
+            private int bodyIndex;
+            private bool isHuman;
+            private bool isInFrame;
+            private string distanceFromSensor;
+
+            public PersonDetectionState(int bodyIndex)
             {
-                this.IsHuman = body.IsHuman();
-                this.IsInFrame = PersonDetector.IsInFrame(body, frame);
-                this.DistanceFromSensor = body.DistanceFromSensor().ToString("0.00");
+                this.BodyIndex = bodyIndex;
             }
 
-            public bool IsHuman { get; }
-            public bool IsInFrame { get; }
-            public string DistanceFromSensor { get; }
+            public int BodyIndex
+            {
+                get => this.bodyIndex;
+                set
+                {
+                    if (value != this.bodyIndex)
+                    {
+                        this.bodyIndex = value;
+                        NotifyPropertyChanged();
+                    }
+                }
+            }
+
+            public bool IsHuman
+            {
+                get => this.isHuman;
+                set
+                {
+                    if (value != this.isHuman)
+                    {
+                        this.isHuman = value;
+                        NotifyPropertyChanged();
+                    }
+                }
+            }
+
+            public bool IsInFrame
+            {
+                get => this.isInFrame;
+                set
+                {
+                    if (value != this.isInFrame)
+                    {
+                        this.isInFrame = value;
+                        NotifyPropertyChanged();
+                    }
+                }
+            }
+
+            public string DistanceFromSensor
+            {
+                get => this.distanceFromSensor;
+                set
+                {
+                    if (value != this.distanceFromSensor)
+                    {
+                        this.distanceFromSensor = value;
+                        NotifyPropertyChanged();
+                    }
+                }
+            }
+
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
+            {
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            }
 
             public static bool operator==(PersonDetectionState first, PersonDetectionState second)
             {
@@ -124,8 +183,6 @@ namespace KinectDrawing
         private TimeSpan? paintingSessionTimeRemaining;
         private DateTime? paintingSessionStartTime;
         private Person primaryPerson = null;
-        private bool? isPrimaryBodyHuman = null;
-        private string primaryBodyDistance = null;
         private PersonCalibrator personCalibrator;
         private string headerText = Properties.Resources.WaitingForPresenceHeader;
         private string subHeaderText = Properties.Resources.WaitingForPresenceSubHeader;
@@ -135,7 +192,7 @@ namespace KinectDrawing
         private double userPointerPositionY = 0.0;
         private const double HumanRatioTolerance = 0.2f;
 
-        private PersonDetectionState? primaryPersonDetectionState = null;
+        private List<PersonDetectionState> personDetectionStates;
 
         public VirtualPainting()
         {
@@ -178,6 +235,12 @@ namespace KinectDrawing
                 this.bitmap = new WriteableBitmap(this.width, this.height, 96.0, 96.0, PixelFormats.Bgra32, null);
 
                 this.bodies = new Body[this.sensor.BodyFrameSource.BodyCount];
+
+                this.PersonDetectionStates = new List<PersonDetectionState>(this.bodies.Count);
+                for (int i = 0; i < this.bodies.Count; i++)
+                {
+                    this.PersonDetectionStates.Add(new PersonDetectionState(i));
+                }
 
                 this.camera.Source = this.bitmap;
 
@@ -237,43 +300,15 @@ namespace KinectDrawing
             }
         }
 
-        public PersonDetectionState? PrimaryPersonDetectionState
+        public List<PersonDetectionState> PersonDetectionStates
         {
-            get => this.primaryPersonDetectionState;
+            get => this.personDetectionStates;
 
             private set
             {
-                if (value != this.primaryPersonDetectionState)
+                if (value != this.personDetectionStates)
                 {
-                    this.primaryPersonDetectionState = value;
-                    NotifyPropertyChanged();
-                }
-            }
-        }
-
-        public string PrimaryBodyDistance
-        {
-            get => this.primaryBodyDistance;
-
-            private set
-            {
-                if (value != this.primaryBodyDistance)
-                {
-                    this.primaryBodyDistance = value;
-                    NotifyPropertyChanged();
-                }
-            }
-        }
-
-        public bool? IsPrimaryBodyHuman
-        {
-            get => this.isPrimaryBodyHuman;
-
-            private set
-            {
-                if (value != this.isPrimaryBodyHuman)
-                {
-                    this.isPrimaryBodyHuman = value;
+                    this.personDetectionStates = value;
                     NotifyPropertyChanged();
                 }
             }
@@ -657,6 +692,7 @@ namespace KinectDrawing
                 if (frame != null)
                 {
                     frame.GetAndRefreshBodyData(this.bodies);
+                    UpdatePersonDetectionStatesIfNeeded();
 
                     if (this.primaryPerson == null)
                     {
@@ -667,8 +703,6 @@ namespace KinectDrawing
                             var body = this.bodies[i];
                             if (body != null && body.IsTracked && PersonDetector.IsPersonPresent(body, this.bodyPresenceArea))
                             {
-                                UpdatePrimaryPersonDetectionStateIfNeeded(body);
-
                                 this.primaryPerson = new Person(i, body.TrackingId);
                                 this.stateMachine.Fire(Trigger.PersonEnters);
                                 break;
@@ -682,8 +716,6 @@ namespace KinectDrawing
                         var primaryBody = this.bodies[this.primaryPerson.BodyIndex];
                         if (primaryBody != null && primaryBody.TrackingId == this.primaryPerson.TrackingId && primaryBody.IsTracked)
                         {
-                            UpdatePrimaryPersonDetectionStateIfNeeded(primaryBody);
-
                             var isPrimaryPersonPresent = PersonDetector.IsPersonPresent(primaryBody, this.bodyPresenceArea, this.primaryPerson.ExpectedMaxDistance);
                             if (this.stateMachine.IsInState(State.ConfirmingLeavingHandPickup)
                                 || this.stateMachine.IsInState(State.ConfirmingLeavingPainting)
@@ -738,11 +770,27 @@ namespace KinectDrawing
             }
         }
 
-        private void UpdatePrimaryPersonDetectionStateIfNeeded(Body primaryBody)
+        private void UpdatePersonDetectionStatesIfNeeded()
         {
             if (Settings.IsDebugViewEnabled)
             {
-                this.PrimaryPersonDetectionState = new PersonDetectionState(primaryBody, this.bodyPresenceArea);
+                for (int i = 0; i < this.bodies.Count; i++)
+                {
+                    this.PersonDetectionStates[i].IsHuman = this.bodies[i].IsHuman();
+                    this.PersonDetectionStates[i].IsInFrame = PersonDetector.IsInFrame(this.bodies[i], this.bodyPresenceArea);
+                    this.PersonDetectionStates[i].DistanceFromSensor = this.bodies[i].DistanceFromSensor().ToString("0.00");
+                }
+
+                if (this.primaryPerson == null)
+                {
+                    return;
+                }
+
+                Body primaryBody = this.bodies[this.primaryPerson.BodyIndex];
+                if (primaryBody == null)
+                {
+                    return;
+                }
 
                 Joint shoulderLeft = primaryBody.Joints[JointType.ShoulderLeft];
                 Joint shoulderRight = primaryBody.Joints[JointType.ShoulderRight];

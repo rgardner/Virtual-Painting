@@ -47,46 +47,62 @@
             <Rectangle Grid.Row="2" Grid.ColumnSpan="3" Fill="#2760A3"/>
 
             <Grid Grid.Row="0" Grid.ColumnSpan="3" Background="#2760A3">
-                <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0">
-                    <Label Foreground="White" FontSize="20">
-                        <Label.Style>
-                            <Style TargetType="Label">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Path=PrimaryPersonDetectionState.IsHuman}" Value="True">
-                                        <Setter Property="Content" Value="IsHuman: Yes" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding Path=PrimaryPersonDetectionState.IsHuman}" Value="False">
-                                        <Setter Property="Content" Value="IsHuman: No" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding Path=PrimaryPersonDetectionState.IsHuman}" Value="null">
-                                        <Setter Property="Content" Value="" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Label.Style>
-                    </Label>
-                    <Label Content="{Binding PrimaryPersonDetectionState.DistanceFromSensor}" ContentStringFormat="Distance: {0}m" Foreground="White" FontSize="20" />
-                    <Label Foreground="White" FontSize="20">
-                        <Label.Style>
-                            <Style TargetType="Label">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Path=PrimaryPersonDetectionState.IsInFrame}" Value="True">
-                                        <Setter Property="Content" Value="IsInFrame: Yes" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding Path=PrimaryPersonDetectionState.IsInFrame}" Value="False">
-                                        <Setter Property="Content" Value="IsInFrame: No" />
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding Path=PrimaryPersonDetectionState.IsInFrame}" Value="null">
-                                        <Setter Property="Content" Value="" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Label.Style>
-                    </Label>
-                </StackPanel>
                 <StackPanel>
                     <TextBlock HorizontalAlignment="Center" Text="{Binding HeaderText}" Foreground="#FFF" FontSize="110" VerticalAlignment="Top" />
                     <TextBlock HorizontalAlignment="Center" Text="{Binding SubHeaderText}" Foreground="#999B9E" FontSize="60" />
+                </StackPanel>
+            </Grid>
+            <Grid Grid.RowSpan="3" Grid.Column="0" Background="#2760A3">
+                <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0">
+                    <ItemsControl ItemsSource="{Binding Path=PersonDetectionStates, UpdateSourceTrigger=PropertyChanged}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel>
+                                    <Label Content="{Binding BodyIndex}" ContentStringFormat="BodyIndex: {0}" Foreground="White" FontSize="20" />
+                                    <Label Foreground="White" FontSize="20">
+                                        <Label.Style>
+                                            <Style TargetType="Label">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Path=IsHuman}" Value="True">
+                                                        <Setter Property="Content" Value="IsHuman: Yes" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Path=IsHuman}" Value="False">
+                                                        <Setter Property="Content" Value="IsHuman: No" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Path=IsHuman}" Value="null">
+                                                        <Setter Property="Content" Value="" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Label.Style>
+                                    </Label>
+                                    <Label Content="{Binding DistanceFromSensor}" ContentStringFormat="Distance: {0}m" Foreground="White" FontSize="20" />
+                                    <Label Foreground="White" FontSize="20">
+                                        <Label.Style>
+                                            <Style TargetType="Label">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Path=IsInFrame}" Value="True">
+                                                        <Setter Property="Content" Value="IsInFrame: Yes" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Path=IsInFrame}" Value="False">
+                                                        <Setter Property="Content" Value="IsInFrame: No" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Path=IsInFrame}" Value="null">
+                                                        <Setter Property="Content" Value="" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Label.Style>
+                                    </Label>
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </StackPanel>
             </Grid>
             <Grid Name="canvasView" Grid.Row="1" Grid.Column="1">
