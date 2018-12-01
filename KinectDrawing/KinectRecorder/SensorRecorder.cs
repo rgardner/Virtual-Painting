@@ -1,6 +1,4 @@
-﻿using Microsoft.Kinect;
-
-namespace KinectRecorder
+﻿namespace KinectRecorder
 {
     public class SensorRecorder
     {
@@ -10,9 +8,9 @@ namespace KinectRecorder
 
         public SensorData SensorData { get; set; } = new SensorData();
 
-        public void LogBodyFrame(BodyFrame bodyFrame, KinectSensor kinectSensor)
+        public void LogBodyFrame(SensorBodyFrame bodyFrame)
         {
-            this.SensorData.BodyFrames.Add(new SensorBodyFrame(bodyFrame, kinectSensor));
+            this.SensorData.BodyFrames.Add(bodyFrame);
         }
     }
 }

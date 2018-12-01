@@ -16,10 +16,10 @@ namespace KinectRecorder
 
             this.bodyFrameBackgroundWorker.DoWork += (s, e) =>
                 {
-                    for (int i = 0; i < this.sensorReadings.BodyFrames.Count; i++)
+                    for (var i = 0; i < this.sensorReadings.BodyFrames.Count; i++)
                     {
                         SensorBodyFrame sensorReading = this.sensorReadings.BodyFrames[i];
-
+                        SensorBodyFrameCaptured?.Invoke(this, sensorReading);
                         if (i != (this.sensorReadings.BodyFrames.Count - 1))
                         {
                             TimeSpan timeUntilNextReading = this.sensorReadings.BodyFrames[i + 1].RelativeTime - sensorReading.RelativeTime;
@@ -29,7 +29,11 @@ namespace KinectRecorder
                 };
         }
 
+#pragma warning disable CS0067
         public event PropertyChangedEventHandler PropertyChanged;
+#pragma warning restore
+
+        public event EventHandler<SensorBodyFrame> SensorBodyFrameCaptured;
 
         public void Start()
         {

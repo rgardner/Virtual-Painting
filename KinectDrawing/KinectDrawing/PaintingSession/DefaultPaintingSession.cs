@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using KinectDrawing.PaintAlgorithm;
 using KinectDrawing.Properties;
+using KinectRecorder;
 using Microsoft.Kinect;
 
 namespace KinectDrawing.PaintingSession
@@ -56,7 +57,7 @@ namespace KinectDrawing.PaintingSession
                 };
         }
 
-        public void Paint(Body body, System.Windows.Media.Brush brush, Canvas canvas, BodyFrame bodyFrame)
+        public void Paint(SensorBody body, System.Windows.Media.Brush brush, Canvas canvas, SensorBodyFrame bodyFrame)
         {
             this.paintingAlgorithm.Paint(body, brush, canvas);
         }

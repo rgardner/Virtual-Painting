@@ -66,7 +66,7 @@ namespace KinectDrawing.PaintingSession
                 };
         }
 
-        public void Paint(Body body, Brush brush, Canvas canvas, BodyFrame bodyFrame)
+        public void Paint(SensorBody body, Brush brush, Canvas canvas, SensorBodyFrame bodyFrame)
         {
             // Cycle color every 50 points to ease debugging
             bool startNewSubSession = (this.sensorRecorder.SensorData.BodyFrames.Count % 50) == 0;
@@ -77,7 +77,7 @@ namespace KinectDrawing.PaintingSession
 
             this.paintAlgorithm.Paint(body, this.brush, canvas, startNewSubSession);
 
-            this.sensorRecorder.LogBodyFrame(bodyFrame, this.sensor);
+            this.sensorRecorder.LogBodyFrame(bodyFrame);
         }
 
         public void SavePainting(Image background, Canvas canvas, int width, int height, string directoryPath, string backgroundDirectoryPath)

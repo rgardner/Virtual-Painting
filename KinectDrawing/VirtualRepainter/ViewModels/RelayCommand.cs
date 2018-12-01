@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace VirtualRepainter.ViewModels
@@ -14,13 +10,13 @@ namespace VirtualRepainter.ViewModels
 
         public RelayCommand(Action<object> execute, Predicate<object> canExecute = null)
         {
-            _execute = execute ?? throw new ArgumentNullException("execute");
-            _canExecute = canExecute;
+            this._execute = execute ?? throw new ArgumentNullException("execute");
+            this._canExecute = canExecute;
         }
 
         public bool CanExecute(object parameter)
         {
-            return _canExecute == null || _canExecute(parameter);
+            return this._canExecute == null || this._canExecute(parameter);
         }
 
         public event EventHandler CanExecuteChanged
@@ -31,7 +27,7 @@ namespace VirtualRepainter.ViewModels
 
         public void Execute(object parameter)
         {
-            _execute(parameter ?? "<N/A>");
+            this._execute(parameter ?? "<N/A>");
         }
     }
 }

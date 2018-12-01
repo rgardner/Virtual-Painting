@@ -14,6 +14,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using KinectDrawing.PaintAlgorithm;
 using KinectDrawing.PaintingSession;
+using KinectRecorder;
 using Microsoft.Kinect;
 using Stateless;
 
@@ -714,7 +715,9 @@ namespace KinectDrawing
                                     }
                                     else if (this.stateMachine.IsInState(State.Painting))
                                     {
-                                        this.paintingSession.Paint(primaryBody, this.currentBrush, this.canvas, frame);
+                                        var primaryBodyAsSensorBody = new SensorBody(primaryBody, this.sensor);
+                                        var frameAsSensorFrame = new SensorBodyFrame(frame, this.sensor);
+                                        this.paintingSession.Paint(primaryBodyAsSensorBody, this.currentBrush, this.canvas, frameAsSensorFrame);
                                     }
                                 }
                             }
@@ -778,7 +781,7 @@ namespace KinectDrawing
 
         private IPaintingSession CreatePaintingSession()
         {
-            var paintAlgorithm = (IPaintAlgorithm)Activator.CreateInstance(Settings.PaintAlgorithm, this.sensor);
+            var paintAlgorithm = (IPaintAlgorithm)Activator.CreateInstance(Settings.PaintAlgorithm);
             if (Settings.IsTestModeEnabled)
             {
                 return new TestModePaintingSession(this.sensor, paintAlgorithm);

@@ -1,43 +1,41 @@
 ﻿using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Shapes;
 using KinectRecorder;
 
-namespace KinectDrawing.PaintAlgorithm
+namespace VirtualRepainter.PaintAlgorithm
 {
-    public class HandTipRightLinePaintAlgorithm : IPaintAlgorithm
+    public class HandRightOnlyPaintAlgorithm
     {
         private Point? lastPoint = null;
 
-        public void Paint(SensorBody body, Brush brush, Canvas canvas, bool _startNewSubSession)
+        public PaintLine Paint(SensorBody body, Brush brush)
         {
-            var hand = body.HandTipRight;
+            PaintLine result = null;
+
+            SensorJoint hand = body.HandRight;
             if (hand.TrackingState != SensorTrackingState.NotTracked)
             {
                 var handPoint = new FloatPoint(hand.X, hand.Y);
-                if (!float.IsInfinity(handPoint.X) && !float.IsInfinity(handPoint.Y))
+                if (!handPoint.IsInfinity())
                 {
                     var newPoint = new Point { X = handPoint.X, Y = handPoint.Y };
                     if (this.lastPoint != null)
                     {
-                        canvas.Children.Add(new Line
+                        result = new PaintLine
                         {
                             X1 = this.lastPoint.Value.X,
                             Y1 = this.lastPoint.Value.Y,
                             X2 = newPoint.X,
                             Y2 = newPoint.Y,
-                            Stroke = brush,
-                            StrokeThickness = 20,
-                            StrokeDashCap = PenLineCap.Round,
-                            StrokeStartLineCap = PenLineCap.Round,
-                            StrokeEndLineCap = PenLineCap.Round,
-                        });
+                            Brush = brush,
+                        };
                     }
 
                     this.lastPoint = newPoint;
                 }
             }
+
+            return result;
         }
     }
 }

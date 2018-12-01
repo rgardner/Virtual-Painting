@@ -1,19 +1,23 @@
 ﻿using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using Microsoft.Win32;
-using KinectRecorder;
-using VirtualRepainter.ViewModels;
 using System.Windows.Media.Imaging;
+using KinectRecorder;
+using Microsoft.Win32;
+using VirtualRepainter.PaintAlgorithm;
+using VirtualRepainter.ViewModels;
 
 namespace VirtualRepainter
 {
     public class VirtualRepainterViewModel : INotifyPropertyChanged
     {
         private SensorRecordingPlayer sensorRecordingPlayer;
+        private readonly Brush paintBrush = Brushes.Black;
+        private readonly HandRightOnlyPaintAlgorithm paintAlgorithm = new HandRightOnlyPaintAlgorithm();
         private readonly BackgroundWorker recordingFileOpenerBackgroundWorker = new BackgroundWorker();
         private readonly BackgroundWorker backgroundImageFileOpenerBackgroundWorker = new BackgroundWorker();
 
@@ -23,9 +27,16 @@ namespace VirtualRepainter
                 {
                     var recordingFilePath = (string)e.Argument;
 
-                    string sensorRecordingData = File.ReadAllText(recordingFilePath);
+                    var sensorRecordingData = File.ReadAllText(recordingFilePath);
                     this.sensorRecordingPlayer = new SensorRecordingPlayer(sensorRecordingData);
-
+                    this.sensorRecordingPlayer.SensorBodyFrameCaptured += (s1, e1) =>
+                        {
+                            Application.Current.Dispatcher.Invoke(() =>
+                                {
+                                    SensorBody primaryBody = e1.Bodies[0];
+                                    this.PaintLines.Add(this.paintAlgorithm.Paint(primaryBody, this.paintBrush));
+                                });
+                        };
                     this.sensorRecordingPlayer.Start();
                 };
 
@@ -48,15 +59,17 @@ namespace VirtualRepainter
             this.OpenFindBackgroundImageFileDialogCommand = new RelayCommand(o => OpenFindBackgroundImageFileDialog());
         }
 
+#pragma warning disable CS0067
         public event PropertyChangedEventHandler PropertyChanged;
+#pragma warning restore
 
         public ImageSource CameraImageSource { get; private set; }
 
-        public Visibility UserPointerVisibility { get; private set; } = Visibility.Collapsed;
-        public int UserPointerPositionX { get; private set; } = 0;
-        public int UserPointerPositionY { get; private set; } = 0;
+        public ObservableCollection<PaintLine> PaintLines { get; set; } = new ObservableCollection<PaintLine>();
 
+        public bool IsOpenFindRecordingFileDialogCommandEnabled { get; private set; } = true;
         public ICommand OpenFindRecordingFileDialogCommand { get; }
+        public bool IsOpenFindBackgroundImageFileDialogCommandEnabled { get; private set; } = true;
         public ICommand OpenFindBackgroundImageFileDialogCommand { get; }
 
         public void OpenRecordingFileDialog()
@@ -67,10 +80,11 @@ namespace VirtualRepainter
                 Filter = "JSON Files (*.json)|*.json"
             };
 
-            bool? result = dialog.ShowDialog();
+            var result = dialog.ShowDialog();
             if (result.HasValue && result.Value)
             {
                 this.recordingFileOpenerBackgroundWorker.RunWorkerAsync(dialog.FileName);
+                this.IsOpenFindRecordingFileDialogCommandEnabled = false;
             }
         }
 
@@ -82,10 +96,11 @@ namespace VirtualRepainter
                 Filter = "PNG Files (*.png)|*.png"
             };
 
-            bool? result = dialog.ShowDialog();
+            var result = dialog.ShowDialog();
             if (result.HasValue && result.Value)
             {
                 this.backgroundImageFileOpenerBackgroundWorker.RunWorkerAsync(dialog.FileName);
+                this.IsOpenFindBackgroundImageFileDialogCommandEnabled = false;
             }
         }
     }

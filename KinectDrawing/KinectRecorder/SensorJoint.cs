@@ -22,7 +22,7 @@ namespace KinectRecorder
             this.CameraX = cameraSpacePoint.X;
             this.CameraY = cameraSpacePoint.Y;
             this.CameraZ = cameraSpacePoint.Z;
-            this.TrackingState = joint.TrackingState;
+            this.TrackingState = (SensorTrackingState)joint.TrackingState;
         }
 
         [JsonConverter(typeof(StringEnumConverter))]
@@ -36,7 +36,7 @@ namespace KinectRecorder
         public float CameraZ { get; set; }
 
         [JsonConverter(typeof(StringEnumConverter))]
-        public TrackingState TrackingState { get; set; }
+        public SensorTrackingState TrackingState { get; set; }
 
         public string SerializeToCsv()
         {

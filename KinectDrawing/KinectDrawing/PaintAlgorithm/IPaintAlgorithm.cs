@@ -1,11 +1,11 @@
 ﻿using System.Windows.Controls;
 using System.Windows.Media;
-using Microsoft.Kinect;
+using KinectRecorder;
 
 namespace KinectDrawing.PaintAlgorithm
 {
-    interface IPaintAlgorithm
+    public interface IPaintAlgorithm
     {
-        void Paint(Body body, Brush brush, Canvas canvas, bool startNewSubSession = false);
+        void Paint(SensorBody body, Brush brush, Canvas canvas, bool startNewSubSession = false);
     }
 }

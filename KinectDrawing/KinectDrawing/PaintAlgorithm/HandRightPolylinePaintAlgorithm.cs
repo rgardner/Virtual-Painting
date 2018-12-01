@@ -3,28 +3,19 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Effects;
 using System.Windows.Shapes;
-using Microsoft.Kinect;
+using KinectRecorder;
 
 namespace KinectDrawing.PaintAlgorithm
 {
-    class HandRightPolylinePaintAlgorithm : IPaintAlgorithm
+    public class HandRightPolylinePaintAlgorithm : IPaintAlgorithm
     {
-        private readonly KinectSensor sensor;
-
-        public HandRightPolylinePaintAlgorithm(KinectSensor sensor)
+        public void Paint(SensorBody body, Brush brush, Canvas canvas, bool startNewSubSession)
         {
-            this.sensor = sensor;
-        }
-
-        public void Paint(Body body, Brush brush, Canvas canvas, bool startNewSubSession)
-        {
-            var hand = body.Joints[JointType.HandRight];
-            if (hand.TrackingState != TrackingState.NotTracked)
+            var hand = body.HandRight;
+            if (hand.TrackingState != SensorTrackingState.NotTracked)
             {
-                CameraSpacePoint handPosition = hand.Position;
-                ColorSpacePoint handPoint = this.sensor.CoordinateMapper.MapCameraPointToColorSpace(handPosition);
-
-                if (!float.IsInfinity(handPoint.X) && !float.IsInfinity(handPoint.Y))
+                var handPoint = new FloatPoint(hand.X, hand.Y);
+                if (!handPoint.IsInfinity())
                 {
                     if (startNewSubSession || (canvas.Children.Count == 1))
                     {

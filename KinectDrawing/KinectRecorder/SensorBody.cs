@@ -1,4 +1,5 @@
-﻿using Microsoft.Kinect;
+﻿using System.Collections.Generic;
+using Microsoft.Kinect;
 using Newtonsoft.Json;
 
 namespace KinectRecorder

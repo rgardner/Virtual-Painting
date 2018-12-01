@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:VirtualRepainter"
-             xmlns:local1="clr-namespace:KinectDrawing;assembly=KinectDrawing"
              mc:Ignorable="d" 
              d:DesignHeight="1280" d:DesignWidth="1900">
 
@@ -12,15 +11,28 @@
         <local:VirtualRepainterViewModel />
     </UserControl.DataContext>
 
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/> 
+    </UserControl.Resources>
+
     <Grid>
         <Viewbox>
             <Grid>
                 <Image Source="{Binding CameraImageSource}" />
-                <Canvas>
-                    <local1:UserPointer Width="250" Height="250" Panel.ZIndex="99" Visibility="{Binding UserPointerVisibility}"
-                                       Canvas.Left="{Binding UserPointerPositionX}" Canvas.Top="{Binding UserPointerPositionY}"
-                                       />
-                </Canvas>
+                <ItemsControl ItemsSource="{Binding Path=PaintLines}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <Canvas />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Line X1="{Binding X1}" Y1="{Binding Y1}" X2="{Binding X2}" Y2="{Binding Y2}"
+                                  Stroke="{Binding Brush}" StrokeThickness="20" StrokeDashCap="Round"
+                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
             </Grid>
         </Viewbox>
         <Grid>
@@ -85,8 +97,10 @@
             </Grid>
             <Grid Name="canvasView" Grid.Row="1" Grid.Column="1">
                 <StackPanel VerticalAlignment="Center">
-                    <Button Content="Open Virtual Painting Recording" Command="{Binding Path=OpenFindRecordingFileDialogCommand}" />
-                    <Button Content="Open Virtual Painting Background Image" Command="{Binding Path=OpenFindBackgroundImageFileDialogCommand}" />
+                    <Button Content="Open Virtual Painting Recording" Command="{Binding Path=OpenFindRecordingFileDialogCommand}"
+                            Visibility="{Binding IsOpenFindRecordingFileDialogCommandEnabled, Converter={StaticResource BoolToVis}}" />
+                    <Button Content="Open Virtual Painting Background Image" Command="{Binding Path=OpenFindBackgroundImageFileDialogCommand}"
+                            Visibility="{Binding IsOpenFindBackgroundImageFileDialogCommandEnabled, Converter={StaticResource BoolToVis}}" />
                 </StackPanel>
             </Grid>
         </Grid>

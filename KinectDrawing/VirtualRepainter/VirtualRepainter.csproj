@@ -58,6 +58,7 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Kinect, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
@@ -84,6 +85,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="PaintAlgorithm\HandRightOnlyPaintAlgorithm.cs" />
+    <Compile Include="PaintAlgorithm\PaintLine.cs" />
     <Compile Include="ViewModels\RelayCommand.cs" />
     <Compile Include="VirtualRepainterView.xaml.cs">
       <DependentUpon>VirtualRepainterView.xaml</DependentUpon>
