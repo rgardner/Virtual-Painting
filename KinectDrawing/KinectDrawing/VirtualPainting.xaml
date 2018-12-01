@@ -116,6 +116,7 @@
                                             </Style>
                                         </Label.Style>
                                     </Label>
+                                    <Label Content="{Binding TrackedJointCount}" ContentStringFormat="TrackedJointCount: {0}" Foreground="White" FontSize="17" />
                                 </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

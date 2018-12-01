@@ -16,6 +16,7 @@ using System.Windows.Threading;
 using KinectDrawing.PaintAlgorithm;
 using KinectDrawing.PaintingSession;
 using KinectRecorder;
+using LightBuzz.Vitruvius;
 using Microsoft.Kinect;
 using Stateless;
 
@@ -68,6 +69,7 @@ namespace KinectDrawing
             private bool isHuman = false;
             private bool isInFrame = false;
             private string distanceFromSensor = string.Empty;
+            private int trackedJointCount = 0;
 
             public PersonDetectionState(int bodyIndex, bool? isPrimary = null, Body body = null, Rect? bodyPresenceArea = null)
             {
@@ -143,12 +145,26 @@ namespace KinectDrawing
                 }
             }
 
+            public int TrackedJointCount
+            {
+                get => this.trackedJointCount;
+                set
+                {
+                    if (value != this.trackedJointCount)
+                    {
+                        this.trackedJointCount = value;
+                        NotifyPropertyChanged();
+                    }
+                }
+            }
+
             public void Refresh(bool isPrimary, Body body, Rect bodyPresenceArea)
             {
                 this.IsPrimary = isPrimary;
                 this.IsHuman = body.IsHuman();
                 this.IsInFrame = PersonDetector.IsInFrame(body, bodyPresenceArea);
                 this.DistanceFromSensor = body.DistanceFromSensor().ToString("0.00");
+                this.TrackedJointCount = body.TrackedJoints(includeInferred: false).Count();
             }
 
             public static bool operator==(PersonDetectionState first, PersonDetectionState second)
