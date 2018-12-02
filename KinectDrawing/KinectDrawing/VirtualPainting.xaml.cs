@@ -42,11 +42,8 @@ namespace KinectDrawing
             Countdown,
             Snapshot,
             HandPickup,
-            ConfirmingLeavingHandPickup,
             Painting,
-            ConfirmingLeavingPainting,
             SavingImage,
-            ConfirmingLeavingSavingImage,
         };
 
         private class Person
@@ -574,40 +571,17 @@ namespace KinectDrawing
                         }
                     })
                 .Permit(Trigger.TimerTick, State.Painting)
-                .Permit(Trigger.PersonLeaves, State.ConfirmingLeavingHandPickup)
+                .Permit(Trigger.PersonLeaves, State.WaitingForPresence)
                 .Permit(Trigger.NewUserSelected, State.WaitingForPresence);
-
-            this.stateMachine.Configure(State.ConfirmingLeavingHandPickup)
-                .OnEntry(t =>
-                    {
-                        Debug.WriteLine("Confirming leaving hand pickup...");
-                        this.timer.Interval = TimeSpan.FromSeconds(3);
-                        this.timer.Start();
-                    })
-                .Permit(Trigger.PersonEnters, State.HandPickup)
-                .Permit(Trigger.TimerTick, State.WaitingForPresence)
-                .Ignore(Trigger.PersonLeaves);
 
             this.stateMachine.Configure(State.Painting)
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Painting...");
 
-                        if (t.Source == State.ConfirmingLeavingPainting)
-                        {
-                            this.timer.Interval = this.paintingSessionTimeRemaining.Value;
-                        }
-                        else
-                        {
-                            this.currentBrush = GetRandomBrush();
-                            this.paintingSession = CreatePaintingSession();
-
-                            // Save start time so we can resume the timer if the person leaves and
-                            // re-enters the frame.
-                            this.paintingSessionTimeRemaining = null;
-                            this.paintingSessionStartTime = DateTime.Now;
-                            this.timer.Interval = TimeSpan.FromSeconds(15);
-                        }
+                        this.currentBrush = GetRandomBrush();
+                        this.paintingSession = CreatePaintingSession();
+                        this.timer.Interval = TimeSpan.FromSeconds(15);
 
                         this.UserPointerVisibility = Visibility.Visible;
                         this.timer.Start();
@@ -615,90 +589,39 @@ namespace KinectDrawing
                 .OnExit(t =>
                     {
                         this.UserPointerVisibility = Visibility.Collapsed;
-                        if (t.Destination == State.ConfirmingLeavingPainting)
+
+                        // Save the painting session if one exists
+                        if ((t.Destination == State.WaitingForPresence) && (this.paintingSession != null))
                         {
-                            TimeSpan elapsedPaintingSessionTime = DateTime.Now - this.paintingSessionStartTime.Value;
-                            this.paintingSessionTimeRemaining = TimeSpan.FromSeconds(15) - elapsedPaintingSessionTime;
+                            this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height,
+                                GetSavedImagesDirectoryPath(), GetSavedBackgroundImagesDirectoryPath());
+                            this.paintingSession.ClearCanvas(this.canvas);
+                            this.paintingSession = null;
                         }
                     })
                 .Permit(Trigger.TimerTick, State.SavingImage)
-                .Permit(Trigger.PersonLeaves, State.ConfirmingLeavingPainting)
+                .Permit(Trigger.PersonLeaves, State.WaitingForPresence)
                 .Permit(Trigger.NewUserSelected, State.WaitingForPresence);
-
-            this.stateMachine.Configure(State.ConfirmingLeavingPainting)
-                .OnEntry(t =>
-                    {
-                        Debug.WriteLine("Confirming leaving...");
-                        this.timer.Interval = TimeSpan.FromSeconds(3);
-                        this.timer.Start();
-                    })
-                .OnExit(t =>
-                {
-                    // Save the painting session if one exists
-                    if ((t.Destination == State.WaitingForPresence) && (this.paintingSession != null))
-                    {
-                        this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height,
-                            GetSavedImagesDirectoryPath(), GetSavedBackgroundImagesDirectoryPath());
-                        this.paintingSession.ClearCanvas(this.canvas);
-                        this.paintingSession = null;
-                    }
-                })
-                .Permit(Trigger.PersonEnters, State.Painting)
-                .Permit(Trigger.TimerTick, State.WaitingForPresence)
-                .Ignore(Trigger.PersonLeaves);
 
             this.stateMachine.Configure(State.SavingImage)
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Saving image...");
 
-                        if (t.Source == State.Painting)
-                        {
-                            // TODO: Switch subHeader when done recording
-                            // this.subHeader.Text = "to the iPad for future reference";
+                        FlashWindow();
+                        this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height,
+                            GetSavedImagesDirectoryPath(), GetSavedBackgroundImagesDirectoryPath());
 
-                            FlashWindow();
-                            this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height,
-                                GetSavedImagesDirectoryPath(), GetSavedBackgroundImagesDirectoryPath());
-
-                            this.timer.Interval = TimeSpan.FromSeconds(7);
-                        }
-                        else if (t.Source == State.ConfirmingLeavingSavingImage)
-                        {
-                            this.timer.Interval = TimeSpan.FromSeconds(2);
-                        }
-
+                        this.timer.Interval = TimeSpan.FromSeconds(7);
                         this.timer.Start();
                     })
                 .OnExit(t =>
                     {
-                        if (t.Destination == State.HandPickup)
-                        {
-                            this.paintingSession.ClearCanvas(this.canvas);
-                            this.paintingSession = null;
-                        }
+                        this.paintingSession.ClearCanvas(this.canvas);
+                        this.paintingSession = null;
                     })
                 .Permit(Trigger.TimerTick, State.HandPickup)
-                .Permit(Trigger.PersonLeaves, State.ConfirmingLeavingSavingImage);
-
-            this.stateMachine.Configure(State.ConfirmingLeavingSavingImage)
-                .OnEntry(t =>
-                    {
-                        Debug.WriteLine("Confirming leaving saving image...");
-                        this.timer.Interval = TimeSpan.FromSeconds(3);
-                        this.timer.Start();
-                    })
-                .OnExit(t =>
-                    {
-                        if (t.Destination == State.WaitingForPresence)
-                        {
-                            this.paintingSession.ClearCanvas(this.canvas);
-                            this.paintingSession = null;
-                        }
-                    })
-                .Permit(Trigger.PersonEnters, State.SavingImage)
-                .Permit(Trigger.TimerTick, State.WaitingForPresence)
-                .Ignore(Trigger.PersonLeaves);
+                .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
         }
 
         private void SetHeadersForState(State state)
@@ -716,14 +639,11 @@ namespace KinectDrawing
                     this.SubHeaderText = string.Empty;
                     break;
                 case State.HandPickup:
-                case State.ConfirmingLeavingHandPickup:
                 case State.Painting:
-                case State.ConfirmingLeavingPainting:
                     this.HeaderText = Properties.Resources.PaintingHeader;
                     this.SubHeaderText = Properties.Resources.PaintingSubHeader;
                     break;
                 case State.SavingImage:
-                case State.ConfirmingLeavingSavingImage:
                     this.HeaderText = Properties.Resources.SavingImageHeader;
                     this.SubHeaderText = Properties.Resources.SavingImageSubHeader;
                     break;
@@ -794,22 +714,7 @@ namespace KinectDrawing
                         if (primaryBody != null && primaryBody.TrackingId == this.primaryPerson.TrackingId && primaryBody.IsTracked)
                         {
                             var isPrimaryPersonPresent = PersonDetector.IsPersonPresent(primaryBody, this.bodyPresenceArea, this.primaryPerson.ExpectedMaxDistance);
-                            if (this.stateMachine.IsInState(State.ConfirmingLeavingHandPickup)
-                                || this.stateMachine.IsInState(State.ConfirmingLeavingPainting)
-                                || this.stateMachine.IsInState(State.ConfirmingLeavingSavingImage))
-                            {
-                                // Last frame the primary body was missing from the frame, detect
-                                // if they have returned.
-                                if (isPrimaryPersonPresent)
-                                {
-                                    this.stateMachine.Fire(Trigger.PersonEnters);
-                                }
-                            }
-                            else if (!isPrimaryPersonPresent)
-                            {
-                                this.stateMachine.Fire(Trigger.PersonLeaves);
-                            }
-                            else
+                            if (isPrimaryPersonPresent)
                             {
                                 // Primary person is in the frame and is a valid distance from the camera.
                                 if (this.stateMachine.IsInState(State.ConfirmingPresence))
@@ -839,6 +744,10 @@ namespace KinectDrawing
                                         this.paintingSession.Paint(primaryBodyAsSensorBody, this.currentBrush, this.canvas, frameAsSensorFrame);
                                     }
                                 }
+                            }
+                            else
+                            {
+                                this.stateMachine.Fire(Trigger.PersonLeaves);
                             }
                         }
                         else
