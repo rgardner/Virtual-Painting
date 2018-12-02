@@ -551,7 +551,7 @@ namespace KinectDrawing
                         this.timer.Start();
                     })
                 .Permit(Trigger.TimerTick, State.HandPickup)
-                .Ignore(Trigger.PersonLeaves);
+                .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
 
             this.stateMachine.Configure(State.HandPickup)
                 .OnEntry(t =>
