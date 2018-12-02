@@ -19,6 +19,7 @@ using KinectRecorder;
 using LightBuzz.Vitruvius;
 using Microsoft.Kinect;
 using Stateless;
+using Stateless.Graph;
 
 namespace KinectDrawing
 {
@@ -288,6 +289,12 @@ namespace KinectDrawing
                 };
 
             ConfigureStateMachine();
+
+            if (Settings.GenerateStateMachineGraph)
+            {
+                string stateMachineGraph = UmlDotGraph.Format(this.stateMachine.GetInfo());
+                Debug.WriteLine(stateMachineGraph);
+            }
 
             this.sensor = KinectSensor.GetDefault();
 

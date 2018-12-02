@@ -37,6 +37,8 @@ namespace KinectDrawing
         public const string SavedBackgroundImagesDirectoryPathEnvironmentVariableName = "VirtualPainting_SavedBackgroundImagesDirectoryPath";
 
         public static bool IsDebugViewEnabled { get; } = true;
+        public static bool GenerateStateMachineGraph { get; } = true;
+
         public static readonly bool IsTestModeEnabled = true;
     }
 }
