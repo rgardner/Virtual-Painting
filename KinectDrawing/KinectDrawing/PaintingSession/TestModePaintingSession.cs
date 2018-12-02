@@ -96,9 +96,11 @@ namespace KinectDrawing.PaintingSession
 
         public void ClearCanvas(Canvas canvas)
         {
-            Debug.Assert(canvas.Children.Count > 1);
-            var elementCountToRemove = canvas.Children.Count - 1;
-            canvas.Children.RemoveRange(1, elementCountToRemove);
+            if (canvas.Children.Count > 1)
+            {
+                var elementCountToRemove = canvas.Children.Count - 1;
+                canvas.Children.RemoveRange(1, elementCountToRemove);
+            }
         }
 
         private static void SaveRenderTargetBitmapAsPng(RenderTargetBitmap rtb, string filePath)

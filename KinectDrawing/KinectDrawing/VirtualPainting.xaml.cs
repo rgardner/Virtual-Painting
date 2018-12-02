@@ -32,6 +32,7 @@ namespace KinectDrawing
             PersonEnters,
             PersonLeaves,
             TimerTick,
+            NewUserSelected,
         };
 
         private enum State
@@ -221,7 +222,6 @@ namespace KinectDrawing
         private readonly StateMachine<State, Trigger> stateMachine = new StateMachine<State, Trigger>(State.WaitingForPresence);
 
         private readonly DispatcherTimer timer = new DispatcherTimer();
-
         private KinectSensor sensor = null;
         private ColorFrameReader colorReader = null;
         private BodyFrameReader bodyReader = null;
@@ -233,6 +233,8 @@ namespace KinectDrawing
         private WriteableBitmap bitmap = null;
 
         private Rect bodyPresenceArea;
+        private Rect pointerZoneRect;
+        private Rect newUserButtonRect;
 
         private CountdownTimer countdownTimer = null;
         private string countdownValue = string.Empty;
@@ -247,8 +249,11 @@ namespace KinectDrawing
         private string subHeaderText = Properties.Resources.WaitingForPresenceSubHeader;
         private Visibility personOutlineVisibility = Visibility.Visible;
         private Visibility userPointerVisibility = Visibility.Collapsed;
+
+        private const double PrimaryUserPointerRadiusInitialValue = 60;
         private double userPointerPositionX = 0.0;
         private double userPointerPositionY = 0.0;
+
         private const double HumanRatioTolerance = 0.2f;
 
         private ObservableCollection<PersonDetectionState> personDetectionStates = new ObservableCollection<PersonDetectionState>();
@@ -256,6 +261,18 @@ namespace KinectDrawing
         public VirtualPainting()
         {
             InitializeComponent();
+
+            Loaded += (s, e) =>
+                {
+                    Point newUserButtonTopLeftPoint = this.newUserButton.TranslatePoint(new Point(), this);
+                    this.newUserButtonRect = new Rect(newUserButtonTopLeftPoint.X, newUserButtonTopLeftPoint.Y, this.newUserButton.ActualWidth, this.newUserButton.ActualHeight);
+
+                    Point pointerZoneTopLeftPoint = this.pointerZone.TranslatePoint(new Point(), this);
+                    this.pointerZoneRect = new Rect(pointerZoneTopLeftPoint.X, pointerZoneTopLeftPoint.Y, this.pointerZone.ActualWidth, this.pointerZone.ActualHeight);
+
+                    this.primaryUserPointer.Width = PrimaryUserPointerRadiusInitialValue;
+                    this.primaryUserPointer.Height = PrimaryUserPointerRadiusInitialValue;
+                };
 
             Unloaded += (s, e) =>
                 {
@@ -458,6 +475,11 @@ namespace KinectDrawing
                     {
                         Debug.WriteLine("Waiting for presence...");
                         this.PersonOutlineVisibility = Visibility.Visible;
+
+                        this.primaryUserPointer.Visibility = Visibility.Collapsed;
+                        this.primaryUserPointer.Width = PrimaryUserPointerRadiusInitialValue;
+                        this.primaryUserPointer.Height = PrimaryUserPointerRadiusInitialValue;
+
                         if (!Settings.IsTestModeEnabled)
                         {
                             this.colorReader.IsPaused = false;
@@ -552,7 +574,8 @@ namespace KinectDrawing
                         }
                     })
                 .Permit(Trigger.TimerTick, State.Painting)
-                .Permit(Trigger.PersonLeaves, State.ConfirmingLeavingHandPickup);
+                .Permit(Trigger.PersonLeaves, State.ConfirmingLeavingHandPickup)
+                .Permit(Trigger.NewUserSelected, State.WaitingForPresence);
 
             this.stateMachine.Configure(State.ConfirmingLeavingHandPickup)
                 .OnEntry(t =>
@@ -599,7 +622,8 @@ namespace KinectDrawing
                         }
                     })
                 .Permit(Trigger.TimerTick, State.SavingImage)
-                .Permit(Trigger.PersonLeaves, State.ConfirmingLeavingPainting);
+                .Permit(Trigger.PersonLeaves, State.ConfirmingLeavingPainting)
+                .Permit(Trigger.NewUserSelected, State.WaitingForPresence);
 
             this.stateMachine.Configure(State.ConfirmingLeavingPainting)
                 .OnEntry(t =>
@@ -920,24 +944,46 @@ namespace KinectDrawing
             if (hand.TrackingState != TrackingState.NotTracked)
             {
                 ColorSpacePoint handPoint = this.sensor.CoordinateMapper.MapCameraPointToColorSpace(hand.Position);
-
-                var x = handPoint.X;
-                var y = handPoint.Y;
-
-                if (!float.IsInfinity(x) && !float.IsInfinity(y))
+                if (float.IsInfinity(handPoint.X) || float.IsInfinity(handPoint.Y))
                 {
-                    this.UserPointerPositionX = x;
-                    this.UserPointerPositionY = y;
+                    return;
+                }
+
+                if (this.pointerZoneRect.Contains(handPoint.X, handPoint.Y))
+                {
+                    if (this.newUserButtonRect.Contains(handPoint.X, handPoint.Y))
+                    {
+                        --this.primaryUserPointer.Width;
+                        --this.primaryUserPointer.Height;
+                        if (this.primaryUserPointer.Width == 0 || this.primaryUserPointer.Height == 0)
+                        {
+                            this.primaryUserPointer.Visibility = Visibility.Collapsed;
+                            this.stateMachine.Fire(Trigger.NewUserSelected);
+                        }
+                    }
+                    else
+                    {
+                        this.primaryUserPointer.Width = PrimaryUserPointerRadiusInitialValue;
+                        this.primaryUserPointer.Height = PrimaryUserPointerRadiusInitialValue;
+                    }
+
+                    Canvas.SetLeft(this.primaryUserPointer, handPoint.X);
+                    Canvas.SetTop(this.primaryUserPointer, handPoint.Y);
+                    this.primaryUserPointer.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    this.primaryUserPointer.Visibility = Visibility.Collapsed;
+                    this.UserPointerPositionX = handPoint.X;
+                    this.UserPointerPositionY = handPoint.Y;
                 }
             }
         }
 
         private bool IsSelectingNewUserButton(Joint hand)
         {
-            Point locationFromWindow = this.newUserButton.TranslatePoint(new Point(), this);
-            var newUserButtonRect = new Rect(locationFromWindow.X, locationFromWindow.Y, this.newUserButton.ActualWidth, this.newUserButton.ActualHeight);
             var handPoint = hand.Position.ToPoint(Visualization.Color);
-            return newUserButtonRect.Contains(handPoint);
+            return this.newUserButtonRect.Contains(handPoint);
         }
 
         private IPaintingSession CreatePaintingSession()
