@@ -70,6 +70,7 @@ namespace KinectDrawing
             private bool isInFrame = false;
             private string distanceFromSensor = string.Empty;
             private int trackedJointCount = 0;
+            private int selectingNewUserButtonFrameCount = 0;
 
             public PersonDetectionState(int bodyIndex, bool? isPrimary = null, Body body = null, Rect? bodyPresenceArea = null)
             {
@@ -153,6 +154,19 @@ namespace KinectDrawing
                     if (value != this.trackedJointCount)
                     {
                         this.trackedJointCount = value;
+                        NotifyPropertyChanged();
+                    }
+                }
+            }
+
+            public int SelectingNewUserButtonFrameCount
+            {
+                get => this.selectingNewUserButtonFrameCount;
+                set
+                {
+                    if (value != this.selectingNewUserButtonFrameCount)
+                    {
+                        this.selectingNewUserButtonFrameCount = value;
                         NotifyPropertyChanged();
                     }
                 }
@@ -783,6 +797,9 @@ namespace KinectDrawing
                                 {
                                     DrawUserPointerIfNeeded(primaryBody.Joints[JointType.HandRight]);
 
+                                    bool isSelectingNewUserButton = IsSelectingNewUserButton(primaryBody.Joints[JointType.HandRight]);
+                                    UpdatePrimaryPersonDetectionHandState(isSelectingNewUserButton);
+
                                     if (this.stateMachine.IsInState(State.HandPickup))
                                     {
                                         if (!this.timer.IsEnabled && IsJointInCanvasView(primaryBody.Joints[JointType.HandRight]))
@@ -885,6 +902,19 @@ namespace KinectDrawing
             }
         }
 
+        private void UpdatePrimaryPersonDetectionHandState(bool isSelectingNewUserButton)
+        {
+            PersonDetectionState personDetectionState = this.PersonDetectionStates.Where(s => s.IsPrimary).FirstOrDefault();
+            if (isSelectingNewUserButton)
+            {
+                personDetectionState.SelectingNewUserButtonFrameCount++;
+            }
+            else
+            {
+                personDetectionState.SelectingNewUserButtonFrameCount = 0;
+            }
+        }
+
         private void DrawUserPointerIfNeeded(Joint hand)
         {
             if (hand.TrackingState != TrackingState.NotTracked)
@@ -900,6 +930,14 @@ namespace KinectDrawing
                     this.UserPointerPositionY = y;
                 }
             }
+        }
+
+        private bool IsSelectingNewUserButton(Joint hand)
+        {
+            Point locationFromWindow = this.newUserButton.TranslatePoint(new Point(), this);
+            var newUserButtonRect = new Rect(locationFromWindow.X, locationFromWindow.Y, this.newUserButton.ActualWidth, this.newUserButton.ActualHeight);
+            var handPoint = hand.Position.ToPoint(Visualization.Color);
+            return newUserButtonRect.Contains(handPoint);
         }
 
         private IPaintingSession CreatePaintingSession()
