@@ -3,7 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:KinectDrawing"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
@@ -14,17 +13,26 @@
                         <CombinedGeometry GeometryCombineMode="Union">
                             <CombinedGeometry.Geometry1>
                                 <!-- Head -->
-                                <EllipseGeometry RadiusX="80" RadiusY="90" Center="400,190" />
+                                <EllipseGeometry RadiusX="40" RadiusY="60" Center="400,230" />
                             </CombinedGeometry.Geometry1>
                             <CombinedGeometry.Geometry2>
                                 <!-- Body -->
-                                <EllipseGeometry RadiusX="160" RadiusY="250" Center="400,530" />
+                                <CombinedGeometry GeometryCombineMode="Union">
+                                    <CombinedGeometry.Geometry1>
+                                        <!-- Left Shoulder -->
+                                        <EllipseGeometry RadiusX="90" RadiusY="160" Center="380,450" />
+                                    </CombinedGeometry.Geometry1>
+                                    <CombinedGeometry.Geometry2>
+                                        <!-- Right Shoulder -->
+                                        <EllipseGeometry RadiusX="90" RadiusY="160" Center="420,450" />
+                                    </CombinedGeometry.Geometry2>
+                                </CombinedGeometry>
                             </CombinedGeometry.Geometry2>
                         </CombinedGeometry>
                     </CombinedGeometry.Geometry1>
                     <CombinedGeometry.Geometry2>
                         <!-- Neck -->
-                        <RectangleGeometry Rect="365,250,70,140" />
+                        <RectangleGeometry Rect="380,250,40,60" />
                     </CombinedGeometry.Geometry2>
                 </CombinedGeometry>
             </Path.Data>

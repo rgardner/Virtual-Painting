@@ -648,10 +648,9 @@ namespace KinectDrawing
                             FlipCameraFeed();
                         }
 
-                        this.PersonOutlineVisibility = Visibility.Visible;
-
                         if (!Settings.IsTestModeEnabled)
                         {
+                            this.PersonOutlineVisibility = Visibility.Visible;
                             this.colorReader.IsPaused = false;
                         }
 
@@ -715,11 +714,11 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Snapshot!");
-                        this.PersonOutlineVisibility = Visibility.Collapsed;
                         FlashWindow();
 
                         if (!Settings.IsTestModeEnabled)
                         {
+                            this.PersonOutlineVisibility = Visibility.Collapsed;
                             this.colorReader.IsPaused = true;
                         }
 
