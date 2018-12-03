@@ -388,8 +388,6 @@ namespace KinectDrawing
             }
         }
 
-        private readonly StateMachine<State, Trigger> stateMachine = new StateMachine<State, Trigger>(State.WaitingForPresence);
-
         private readonly DispatcherTimer timer = new DispatcherTimer();
         private KinectSensor sensor = null;
         private ColorFrameReader colorReader = null;
@@ -465,14 +463,14 @@ namespace KinectDrawing
 
             this.timer.Tick += (s, e) =>
                 {
-                    this.stateMachine.Fire(Trigger.TimerTick);
+                    this.StateMachine.Fire(Trigger.TimerTick);
                 };
 
             ConfigureStateMachine();
 
             if (Settings.GenerateStateMachineGraph)
             {
-                string stateMachineGraph = UmlDotGraph.Format(this.stateMachine.GetInfo());
+                string stateMachineGraph = UmlDotGraph.Format(this.StateMachine.GetInfo());
                 Debug.WriteLine(stateMachineGraph);
             }
 
@@ -627,7 +625,7 @@ namespace KinectDrawing
             }
         }
 
-        public StateMachine<State, Trigger> StateMachine => this.stateMachine;
+        public StateMachine<State, Trigger> StateMachine { get; } = new StateMachine<State, Trigger>(State.WaitingForPresence);
 
         /// <summary>
         /// INotifyPropertyChanged event to allow window controls to bind to changeable data.
@@ -653,13 +651,13 @@ namespace KinectDrawing
 
         private void ConfigureStateMachine()
         {
-            this.stateMachine.OnTransitioned(t =>
+            this.StateMachine.OnTransitioned(t =>
                 {
                     SetHeadersForState(t.Destination);
                     this.timer.Stop();
                 });
 
-            this.stateMachine.Configure(State.WaitingForPresence)
+            this.StateMachine.Configure(State.WaitingForPresence)
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Waiting for presence...");
@@ -675,7 +673,7 @@ namespace KinectDrawing
                 .Permit(Trigger.PersonEnters, State.ConfirmingPresence)
                 .Ignore(Trigger.NewUserSelected);
 
-            this.stateMachine.Configure(State.ConfirmingPresence)
+            this.StateMachine.Configure(State.ConfirmingPresence)
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Confirming presence...");
@@ -692,7 +690,7 @@ namespace KinectDrawing
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence)
                 .Permit(Trigger.NewUserSelected, State.WaitingForPresence);
 
-            this.stateMachine.Configure(State.Countdown)
+            this.StateMachine.Configure(State.Countdown)
                 .OnEntry(t =>
                     {
                         const int initialCountdownValue = 3;
@@ -704,7 +702,7 @@ namespace KinectDrawing
                                 {
                                     if (this.countdownTimer.Value == 0)
                                     {
-                                        this.stateMachine.Fire(Trigger.TimerTick);
+                                        this.StateMachine.Fire(Trigger.TimerTick);
                                     }
                                     else
                                     {
@@ -726,7 +724,7 @@ namespace KinectDrawing
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence)
                 .Permit(Trigger.NewUserSelected, State.WaitingForPresence);
 
-            this.stateMachine.Configure(State.Snapshot)
+            this.StateMachine.Configure(State.Snapshot)
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Snapshot!");
@@ -745,7 +743,7 @@ namespace KinectDrawing
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence)
                 .Permit(Trigger.NewUserSelected, State.WaitingForPresence);
 
-            this.stateMachine.Configure(State.HandPickup)
+            this.StateMachine.Configure(State.HandPickup)
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Waiting for hand to enter frame...");
@@ -766,7 +764,7 @@ namespace KinectDrawing
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence)
                 .Permit(Trigger.NewUserSelected, State.WaitingForPresence);
 
-            this.stateMachine.Configure(State.Painting)
+            this.StateMachine.Configure(State.Painting)
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Painting...");
@@ -795,7 +793,7 @@ namespace KinectDrawing
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence)
                 .Permit(Trigger.NewUserSelected, State.WaitingForPresence);
 
-            this.stateMachine.Configure(State.SavingImage)
+            this.StateMachine.Configure(State.SavingImage)
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Saving image...");
@@ -899,7 +897,7 @@ namespace KinectDrawing
                             if (body != null && body.IsTracked && PersonDetector.IsPersonPresent(body, this.bodyPresenceArea))
                             {
                                 this.primaryPerson = new Person(i, body.TrackingId);
-                                this.stateMachine.Fire(Trigger.PersonEnters);
+                                this.StateMachine.Fire(Trigger.PersonEnters);
                                 break;
                             }
                         }
@@ -915,14 +913,14 @@ namespace KinectDrawing
                             if (isPrimaryPersonPresent)
                             {
                                 // Primary person is in the frame and is a valid distance from the camera.
-                                if (this.stateMachine.IsInState(State.ConfirmingPresence))
+                                if (this.StateMachine.IsInState(State.ConfirmingPresence))
                                 {
                                     // Calibrate the primary person's distance
                                     this.personCalibrator.AddDistanceFromCamera(primaryBody.DistanceFromSensor());
                                 }
-                                else if (this.stateMachine.IsInState(State.HandPickup) || this.stateMachine.IsInState(State.Painting))
+                                else if (this.StateMachine.IsInState(State.HandPickup) || this.StateMachine.IsInState(State.Painting))
                                 {
-                                    if (this.stateMachine.IsInState(State.HandPickup))
+                                    if (this.StateMachine.IsInState(State.HandPickup))
                                     {
                                         if (!this.timer.IsEnabled && IsJointInCanvasView(primaryBody.Joints[JointType.HandRight]))
                                         {
@@ -930,7 +928,7 @@ namespace KinectDrawing
                                             this.timer.Start();
                                         }
                                     }
-                                    else if (this.stateMachine.IsInState(State.Painting))
+                                    else if (this.StateMachine.IsInState(State.Painting))
                                     {
                                         var primaryBodyAsSensorBody = new SensorBody(primaryBody, this.sensor);
                                         var frameAsSensorFrame = new SensorBodyFrame(frame, this.sensor);
@@ -940,12 +938,12 @@ namespace KinectDrawing
                             }
                             else
                             {
-                                this.stateMachine.Fire(Trigger.PersonLeaves);
+                                this.StateMachine.Fire(Trigger.PersonLeaves);
                             }
                         }
                         else
                         {
-                            this.stateMachine.Fire(Trigger.PersonLeaves);
+                            this.StateMachine.Fire(Trigger.PersonLeaves);
                         }
                     }
                 }
