@@ -238,6 +238,8 @@ namespace KinectDrawing
             private readonly Line headLine;
             private readonly Line rightShoulderLine;
             private readonly Line leftShoulderLine;
+            private readonly Line rightElbowLine;
+            private readonly Line leftElbowLine;
             private readonly Line topSpineLine;
             private readonly Line bottomSpineLine;
             private readonly Ellipse rightHandPointer;
@@ -252,6 +254,8 @@ namespace KinectDrawing
                 this.headLine = CreateLine();
                 this.rightShoulderLine = CreateLine();
                 this.leftShoulderLine = CreateLine();
+                this.rightElbowLine = CreateLine();
+                this.leftElbowLine = CreateLine();
                 this.topSpineLine = CreateLine();
                 this.bottomSpineLine = CreateLine();
                 this.rightHandPointer = new Ellipse()
@@ -263,6 +267,8 @@ namespace KinectDrawing
                 CanvasScreen.Children.Add(this.headLine);
                 CanvasScreen.Children.Add(this.rightShoulderLine);
                 CanvasScreen.Children.Add(this.leftShoulderLine);
+                CanvasScreen.Children.Add(this.rightElbowLine);
+                CanvasScreen.Children.Add(this.leftElbowLine);
                 CanvasScreen.Children.Add(this.topSpineLine);
                 CanvasScreen.Children.Add(this.bottomSpineLine);
                 CanvasScreen.Children.Add(this.rightHandPointer);
@@ -275,6 +281,8 @@ namespace KinectDrawing
                     DrawJointLine(this.headLine, body.Joints[JointType.Head], body.Joints[JointType.SpineShoulder], isPrimary);
                     DrawJointLine(this.rightShoulderLine, body.Joints[JointType.ShoulderRight], body.Joints[JointType.SpineShoulder], isPrimary);
                     DrawJointLine(this.leftShoulderLine, body.Joints[JointType.ShoulderLeft], body.Joints[JointType.SpineShoulder], isPrimary);
+                    DrawJointLine(this.rightElbowLine, body.Joints[JointType.ElbowRight], body.Joints[JointType.ShoulderRight], isPrimary);
+                    DrawJointLine(this.leftElbowLine, body.Joints[JointType.ElbowLeft], body.Joints[JointType.ShoulderLeft], isPrimary);
                     DrawJointLine(this.topSpineLine, body.Joints[JointType.SpineShoulder], body.Joints[JointType.SpineMid], isPrimary);
                     DrawJointLine(this.bottomSpineLine, body.Joints[JointType.SpineMid], body.Joints[JointType.SpineBase], isPrimary);
 
@@ -332,6 +340,8 @@ namespace KinectDrawing
                     this.headLine.Opacity = HiddenOpacity;
                     this.rightShoulderLine.Opacity = HiddenOpacity;
                     this.leftShoulderLine.Opacity = HiddenOpacity;
+                    this.rightElbowLine.Opacity = HiddenOpacity;
+                    this.leftElbowLine.Opacity = HiddenOpacity;
                     this.topSpineLine.Opacity = HiddenOpacity;
                     this.bottomSpineLine.Opacity = HiddenOpacity;
                     this.rightHandPointer.Opacity = HiddenOpacity;
