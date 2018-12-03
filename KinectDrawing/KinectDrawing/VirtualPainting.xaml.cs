@@ -230,8 +230,8 @@ namespace KinectDrawing
 
         private class Skeleton
         {
-            private const double PrimaryUserOpacity = 0.50;
-            private const double SecondaryUserOpacity = 0.20;
+            private const double PrimaryUserOpacity = 0.25;
+            private const double SecondaryUserOpacity = 0.10;
             private const double SelectNewUserOpacity = 1.0;
             private const double HiddenOpacity = 0.0;
 
