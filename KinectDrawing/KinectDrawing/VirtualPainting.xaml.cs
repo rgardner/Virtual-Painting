@@ -235,13 +235,23 @@ namespace KinectDrawing
             private const double SelectNewUserOpacity = 1.0;
             private const double HiddenOpacity = 0.0;
 
-            private readonly Line headLine;
-            private readonly Line rightShoulderLine;
-            private readonly Line leftShoulderLine;
-            private readonly Line rightElbowLine;
-            private readonly Line leftElbowLine;
-            private readonly Line topSpineLine;
-            private readonly Line bottomSpineLine;
+            private readonly Line headLine = CreateLine();
+            private readonly Line rightShoulderLine = CreateLine();
+            private readonly Line leftShoulderLine = CreateLine();
+            private readonly Line rightElbowLine = CreateLine();
+            private readonly Line leftElbowLine = CreateLine();
+            private readonly Line topSpineLine = CreateLine();
+            private readonly Line bottomSpineLine = CreateLine();
+
+            private readonly Ellipse headPoint = CreatePoint();
+            private readonly Ellipse spineShoulderPoint = CreatePoint();
+            private readonly Ellipse spineMidPoint = CreatePoint();
+            private readonly Ellipse spineBasePoint = CreatePoint();
+            private readonly Ellipse shoulderLeftPoint = CreatePoint();
+            private readonly Ellipse shoulderRightPoint = CreatePoint();
+            private readonly Ellipse elbowLeftPoint = CreatePoint();
+            private readonly Ellipse elbowRightPoint = CreatePoint();
+
             private readonly Ellipse rightHandPointer;
 
             public static VirtualPainting ParentVP { get; set; }
@@ -251,16 +261,9 @@ namespace KinectDrawing
 
             public Skeleton()
             {
-                this.headLine = CreateLine();
-                this.rightShoulderLine = CreateLine();
-                this.leftShoulderLine = CreateLine();
-                this.rightElbowLine = CreateLine();
-                this.leftElbowLine = CreateLine();
-                this.topSpineLine = CreateLine();
-                this.bottomSpineLine = CreateLine();
                 this.rightHandPointer = new Ellipse()
                 {
-                    Fill = Settings.MyBurntOrange,
+                    Stroke = Settings.MyGray,
                     Opacity = HiddenOpacity,
                     Width = UserPointerRadiusInitialValue,
                     Height = UserPointerRadiusInitialValue,
@@ -273,6 +276,16 @@ namespace KinectDrawing
                 CanvasScreen.Children.Add(this.leftElbowLine);
                 CanvasScreen.Children.Add(this.topSpineLine);
                 CanvasScreen.Children.Add(this.bottomSpineLine);
+
+                CanvasScreen.Children.Add(this.headPoint);
+                CanvasScreen.Children.Add(this.spineShoulderPoint);
+                CanvasScreen.Children.Add(this.spineMidPoint);
+                CanvasScreen.Children.Add(this.spineBasePoint);
+                CanvasScreen.Children.Add(this.shoulderLeftPoint);
+                CanvasScreen.Children.Add(this.shoulderRightPoint);
+                CanvasScreen.Children.Add(this.elbowLeftPoint);
+                CanvasScreen.Children.Add(this.elbowRightPoint);
+
                 CanvasScreen.Children.Add(this.rightHandPointer);
             }
 
@@ -287,6 +300,15 @@ namespace KinectDrawing
                     DrawJointLine(this.leftElbowLine, body.Joints[JointType.ElbowLeft], body.Joints[JointType.ShoulderLeft], isPrimary);
                     DrawJointLine(this.topSpineLine, body.Joints[JointType.SpineShoulder], body.Joints[JointType.SpineMid], isPrimary);
                     DrawJointLine(this.bottomSpineLine, body.Joints[JointType.SpineMid], body.Joints[JointType.SpineBase], isPrimary);
+
+                    DrawJointPoint(this.headPoint, body.Joints[JointType.Head], isPrimary);
+                    DrawJointPoint(this.spineShoulderPoint, body.Joints[JointType.SpineShoulder], isPrimary);
+                    DrawJointPoint(this.spineMidPoint, body.Joints[JointType.SpineMid], isPrimary);
+                    DrawJointPoint(this.spineBasePoint, body.Joints[JointType.SpineBase], isPrimary);
+                    DrawJointPoint(this.shoulderLeftPoint, body.Joints[JointType.ShoulderLeft], isPrimary);
+                    DrawJointPoint(this.shoulderRightPoint, body.Joints[JointType.ShoulderRight], isPrimary);
+                    DrawJointPoint(this.elbowLeftPoint, body.Joints[JointType.ElbowLeft], isPrimary);
+                    DrawJointPoint(this.elbowRightPoint, body.Joints[JointType.ElbowRight], isPrimary);
 
                     var rightHand = body.Joints[JointType.HandRight];
                     if (rightHand.TrackingState == TrackingState.Tracked)
@@ -347,12 +369,31 @@ namespace KinectDrawing
                     this.topSpineLine.Opacity = HiddenOpacity;
                     this.bottomSpineLine.Opacity = HiddenOpacity;
                     this.rightHandPointer.Opacity = HiddenOpacity;
+
+                    this.headPoint.Opacity = HiddenOpacity;
+                    this.spineShoulderPoint.Opacity = HiddenOpacity;
+                    this.spineMidPoint.Opacity = HiddenOpacity;
+                    this.spineBasePoint.Opacity = HiddenOpacity;
+                    this.shoulderLeftPoint.Opacity = HiddenOpacity;
+                    this.shoulderRightPoint.Opacity = HiddenOpacity;
+                    this.elbowLeftPoint.Opacity = HiddenOpacity;
+                    this.elbowRightPoint.Opacity = HiddenOpacity;
                 }
             }
 
             private static Line CreateLine()
             {
                 return new Line()
+                {
+                    Opacity = HiddenOpacity,
+                    Stroke = Settings.MyGray,
+                    StrokeThickness = 5,
+                };
+            }
+
+            private static Ellipse CreatePoint()
+            {
+                return new Ellipse()
                 {
                     Opacity = HiddenOpacity,
                     Stroke = Settings.MyGray,
@@ -383,6 +424,31 @@ namespace KinectDrawing
                     {
                         jointLine.Stroke = Settings.MyGray;
                         jointLine.Opacity = SecondaryUserOpacity;
+                    }
+                }
+            }
+
+            private static void DrawJointPoint(Ellipse headPoint, Joint joint, bool isPrimary)
+            {
+                if (joint.TrackingState == TrackingState.NotTracked)
+                {
+                    headPoint.Opacity = HiddenOpacity;
+                }
+                else
+                {
+                    var jointPoint = joint.Position.ToPoint(Visualization.Color);
+                    Canvas.SetLeft(headPoint, jointPoint.X);
+                    Canvas.SetTop(headPoint, jointPoint.Y);
+
+                    if (isPrimary)
+                    {
+                        headPoint.Stroke = Settings.MyBlue;
+                        headPoint.Opacity = PrimaryUserOpacity;
+                    }
+                    else
+                    {
+                        headPoint.Stroke = Settings.MyGray;
+                        headPoint.Opacity = SecondaryUserOpacity;
                     }
                 }
             }
