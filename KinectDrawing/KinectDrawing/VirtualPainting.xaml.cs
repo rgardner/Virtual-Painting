@@ -260,8 +260,10 @@ namespace KinectDrawing
                 this.bottomSpineLine = CreateLine();
                 this.rightHandPointer = new Ellipse()
                 {
-                    Opacity = HiddenOpacity,
                     Fill = Settings.MyBurntOrange,
+                    Opacity = HiddenOpacity,
+                    Width = UserPointerRadiusInitialValue,
+                    Height = UserPointerRadiusInitialValue,
                 };
 
                 CanvasScreen.Children.Add(this.headLine);
@@ -313,16 +315,16 @@ namespace KinectDrawing
                                 --this.rightHandPointer.Height;
                                 if (this.rightHandPointer.Width == 0 || this.rightHandPointer.Height == 0)
                                 {
-                                    this.rightHandPointer.Width = PrimaryUserPointerRadiusInitialValue;
-                                    this.rightHandPointer.Height = PrimaryUserPointerRadiusInitialValue;
+                                    this.rightHandPointer.Width = UserPointerRadiusInitialValue;
+                                    this.rightHandPointer.Height = UserPointerRadiusInitialValue;
                                     ParentVP.StateMachine.Fire(Trigger.NewUserSelected);
                                 }
                             }
                             else
                             {
                                 this.rightHandPointer.Fill = Settings.MyGray;
-                                this.rightHandPointer.Width = PrimaryUserPointerRadiusInitialValue;
-                                this.rightHandPointer.Height = PrimaryUserPointerRadiusInitialValue;
+                                this.rightHandPointer.Width = UserPointerRadiusInitialValue;
+                                this.rightHandPointer.Height = UserPointerRadiusInitialValue;
                                 this.rightHandPointer.Opacity = isPrimary ? PrimaryUserOpacity : SecondaryUserOpacity;
                             }
 
@@ -408,7 +410,7 @@ namespace KinectDrawing
         private Visibility personOutlineVisibility = Visibility.Visible;
         private Visibility userPointerVisibility = Visibility.Collapsed;
 
-        private const double PrimaryUserPointerRadiusInitialValue = 60;
+        private const double UserPointerRadiusInitialValue = 30;
         private double userPointerPositionX = 0.0;
         private double userPointerPositionY = 0.0;
 
