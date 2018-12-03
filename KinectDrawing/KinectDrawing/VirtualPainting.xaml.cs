@@ -374,7 +374,16 @@ namespace KinectDrawing
                     jointLine.Y1 = firstJointPosition.Y;
                     jointLine.X2 = secondJointPosition.X;
                     jointLine.Y2 = secondJointPosition.Y;
-                    jointLine.Opacity = isPrimary ? PrimaryUserOpacity : SecondaryUserOpacity;
+                    if (isPrimary)
+                    {
+                        jointLine.Stroke = Settings.MyBlue;
+                        jointLine.Opacity = PrimaryUserOpacity;
+                    }
+                    else
+                    {
+                        jointLine.Stroke = Settings.MyGray;
+                        jointLine.Opacity = SecondaryUserOpacity;
+                    }
                 }
             }
         }

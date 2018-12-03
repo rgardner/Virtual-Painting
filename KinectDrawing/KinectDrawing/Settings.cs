@@ -7,12 +7,13 @@ namespace KinectDrawing
     {
         public static readonly System.Type PaintAlgorithm = typeof(HandRightLinePaintAlgorithm);
 
+        public static readonly SolidColorBrush MyBlue = new SolidColorBrush(Color.FromRgb(39, 96, 163));
         public static readonly SolidColorBrush MyBurntOrange = new SolidColorBrush(Color.FromRgb(242, 108, 96));
         public static readonly SolidColorBrush MyGray = new SolidColorBrush(Color.FromRgb(153, 155, 154));
 
         public static readonly SolidColorBrush[] PaintBrushes = new SolidColorBrush[]
         {
-            new SolidColorBrush(Color.FromRgb(39, 96, 163)),
+            MyBlue,
             MyBurntOrange,
             new SolidColorBrush(Color.FromRgb(153, 86, 152)),
             new SolidColorBrush(Color.FromRgb(0, 90, 100)),
@@ -41,6 +42,7 @@ namespace KinectDrawing
 
         public static bool IsDebugViewEnabled { get; } = false;
         public static bool GenerateStateMachineGraph { get; } = false;
+
         public static readonly bool IsTestModeEnabled = false;
     }
 }
