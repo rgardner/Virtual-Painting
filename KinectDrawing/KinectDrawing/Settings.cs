@@ -26,7 +26,7 @@ namespace KinectDrawing
         public const double BodyPresenceAreaRightWidthRatio = 0.71;
         public const double BodyPresenceAreaBottomHeightRatio = 0.97;
 
-        public const double BodyDistanceFromCameraThresholdInMeters = 1.5;
+        public const double BodyDistanceFromCameraThresholdInMeters = 2.0;
         public const double BodyDistanceVariationThresholdInMeters = 0.5;
 
         /// <summary>
@@ -39,9 +39,8 @@ namespace KinectDrawing
         public const string SavedImagesDirectoryPathEnvironmentVariableName = "VirtualPainting_SavedImagesDirectoryPath";
         public const string SavedBackgroundImagesDirectoryPathEnvironmentVariableName = "VirtualPainting_SavedBackgroundImagesDirectoryPath";
 
-        public static bool IsDebugViewEnabled { get; } = true;
-        public static bool GenerateStateMachineGraph { get; } = true;
-
-        public static readonly bool IsTestModeEnabled = true;
+        public static bool IsDebugViewEnabled { get; } = false;
+        public static bool GenerateStateMachineGraph { get; } = false;
+        public static readonly bool IsTestModeEnabled = false;
     }
 }
