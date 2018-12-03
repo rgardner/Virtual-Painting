@@ -380,7 +380,6 @@ namespace KinectDrawing
         private int height = 0;
         private byte[] pixels = null;
         private WriteableBitmap bitmap = null;
-        private bool isCameraSelfie = true;
 
         private Rect cameraViewRect;
         private Rect bodyPresenceArea; // TODO: Remove and replace with cameraViewRect
@@ -643,10 +642,6 @@ namespace KinectDrawing
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Waiting for presence...");
-                        if (!this.isCameraSelfie)
-                        {
-                            FlipCameraFeed();
-                        }
 
                         if (!Settings.IsTestModeEnabled)
                         {
@@ -721,8 +716,6 @@ namespace KinectDrawing
                             this.PersonOutlineVisibility = Visibility.Collapsed;
                             this.colorReader.IsPaused = true;
                         }
-
-                        FlipCameraFeed();
 
                         this.timer.Interval = TimeSpan.FromSeconds(0.75);
                         this.timer.Start();
@@ -801,21 +794,6 @@ namespace KinectDrawing
                 .Permit(Trigger.TimerTick, State.HandPickup)
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence)
                 .Permit(Trigger.NewUserSelected, State.WaitingForPresence);
-        }
-
-        /// <summary>
-        /// Flip the photo horizontally (selfie <-> normal).
-        /// </summary>
-        private void FlipCameraFeed()
-        {
-            this.camera.RenderTransformOrigin = new Point(0.5, 0.5);
-            var flipTrans = new ScaleTransform
-            {
-                ScaleX = this.isCameraSelfie ? -1 : 1,
-            };
-            this.camera.RenderTransform = flipTrans;
-
-            this.isCameraSelfie = !this.isCameraSelfie;
         }
 
         private void SetHeadersForState(State state)
