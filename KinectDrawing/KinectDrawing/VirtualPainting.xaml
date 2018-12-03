@@ -138,6 +138,6 @@
             </Grid>
         </Grid>
         <Canvas Name="userPointerCanvas" />
-        <Image Source="/Images/logo.png" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="200" Margin="10,10,-10,-10" />
+        <Image Source="/Images/logo.png" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="300" Margin="10,10,-10,-10" />
     </Grid>
 </UserControl>
