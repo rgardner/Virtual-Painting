@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace KinectRecorder
 {
-    public class SensorRecordingPlayer : INotifyPropertyChanged
+    public class SensorRecordingPlayer
     {
         private readonly SensorData sensorReadings;
         private readonly BackgroundWorker bodyFrameBackgroundWorker = new BackgroundWorker();
@@ -28,10 +28,6 @@ namespace KinectRecorder
                     }
                 };
         }
-
-#pragma warning disable CS0067
-        public event PropertyChangedEventHandler PropertyChanged;
-#pragma warning restore
 
         public event EventHandler<SensorBodyFrame> SensorBodyFrameCaptured;
 
