@@ -303,8 +303,7 @@ namespace VirtualPainting
         private byte[] pixels = null;
         private WriteableBitmap bitmap = null;
 
-        private Rect cameraViewRect;
-        private Rect bodyPresenceArea; // TODO: Remove and replace with cameraViewRect
+        private Rect bodyPresenceArea;
         private Rect pointerZoneRect;
         private Rect newUserButtonRect;
 
@@ -331,10 +330,15 @@ namespace VirtualPainting
                     this.pointerZoneRect = new Rect(pointerZoneTopLeftPoint.X, pointerZoneTopLeftPoint.Y, this.pointerZone.ActualWidth, this.pointerZone.ActualHeight);
 
                     Point canvasViewTopLeftPoint = this.canvasView.TranslatePoint(new Point(), this);
-                    this.cameraViewRect = new Rect(canvasViewTopLeftPoint.X, canvasViewTopLeftPoint.Y, this.canvasView.ActualWidth, this.canvasView.ActualHeight);
+                    this.bodyPresenceArea = new Rect(canvasViewTopLeftPoint.X, canvasViewTopLeftPoint.Y, this.canvasView.ActualWidth, this.canvasView.ActualHeight);
+
+                    if (Settings.IsDebugViewEnabled)
+                    {
+                        DrawRect(this.bodyPresenceArea, this.hitTestingFrame);
+                    }
 
                     Skeleton.CanvasScreen = this.userPointerCanvas;
-                    Skeleton.CameraView = this.cameraViewRect;
+                    Skeleton.CameraView = this.bodyPresenceArea;
                     Skeleton.NewUserButton = this.newUserButtonRect;
 
                     for (int i = 0; i < this.skeletons.Count; i++)
@@ -389,17 +393,6 @@ namespace VirtualPainting
                 this.skeletons = new Skeleton[this.bodies.Count];
 
                 this.camera.Source = this.bitmap;
-
-                var frameX1 = Settings.BodyPresenceAreaLeftWidthRatio * this.width;
-                var frameY1 = Settings.BodyPresenceAreaTopHeightRatio * this.height;
-                var frameX2 = Settings.BodyPresenceAreaRightWidthRatio * this.width;
-                var frameY2 = Settings.BodyPresenceAreaBottomHeightRatio * this.height;
-                this.bodyPresenceArea = new Rect(frameX1, frameY1, frameX2 - frameX1, frameY2 - frameY1);
-                if (Settings.IsDebugViewEnabled)
-                {
-                    DrawRect(this.bodyPresenceArea, this.hitTestingFrame);
-                }
-
             }
 
             Skeleton.ParentVP = this;

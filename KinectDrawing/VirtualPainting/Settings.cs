@@ -22,11 +22,6 @@ namespace VirtualPainting
             new SolidColorBrush(Color.FromRgb(223, 130, 182)),
         };
 
-        public const double BodyPresenceAreaLeftWidthRatio = 0.27;
-        public const double BodyPresenceAreaTopHeightRatio = 0.17;
-        public const double BodyPresenceAreaRightWidthRatio = 0.71;
-        public const double BodyPresenceAreaBottomHeightRatio = 0.97;
-
         public const double BodyDistanceFromCameraThresholdInMeters = 2.0;
         public const double BodyDistanceVariationThresholdInMeters = 0.5;
 
