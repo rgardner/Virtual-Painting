@@ -8,6 +8,8 @@
              d:DesignHeight="1080" d:DesignWidth="1920">
 
     <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/> 
+
         <Storyboard x:Key="FlashAnimation" Storyboard.TargetProperty="Opacity">
             <DoubleAnimation From="0.0" To="1.0" Duration="0:0:0.2" AutoReverse="True" RepeatBehavior="1x" />
         </Storyboard>
@@ -18,7 +20,8 @@
             <Grid>
                 <Image Name="camera" />
                 <Canvas Name="canvas">
-                    <local:UserPointer Width="250" Height="250" Panel.ZIndex="99" Visibility="{Binding UserPointerVisibility}"
+                    <local:UserPointer Width="250" Height="250" Panel.ZIndex="99"
+                                       Visibility="{Binding IsUserPainting, Converter={StaticResource BoolToVis}}"
                                        Canvas.Left="{Binding UserPointerPositionX}" Canvas.Top="{Binding UserPointerPositionY}"
                                        />
                 </Canvas>
@@ -131,7 +134,8 @@
             </Grid>
             <Grid Name="canvasView" Grid.Row="1" Grid.Column="1">
                 <Viewbox>
-                    <local:PersonOutline Visibility="{Binding PersonOutlineVisibility}"  Width="600" Height="500" Margin="-200,-50,0,0"/>
+                    <local:PersonOutline Width="600" Height="500" Margin="-200,-50,0,0"
+                                         Visibility="{Binding IsUserTakingPicture, Converter={StaticResource BoolToVis}}" />
                 </Viewbox>
                 <TextBlock Text="{Binding CountdownValue}" FontSize="150" HorizontalAlignment="Center"
                            VerticalAlignment="Center" Opacity=".75" Foreground="#2760A3" />

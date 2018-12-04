@@ -414,9 +414,9 @@ namespace VirtualPainting
 
         public ObservableCollection<PersonDetectionState> PersonDetectionStates { get; set; } = new ObservableCollection<PersonDetectionState>();
 
-        public Visibility PersonOutlineVisibility { get; private set; } = Visibility.Visible;
+        public bool IsUserTakingPicture { get; private set; } = true;
 
-        public Visibility UserPointerVisibility { get; private set; } = Visibility.Collapsed;
+        public bool IsUserPainting { get; private set; }
 
         public double UserPointerPositionX { get; private set; }
 
@@ -455,7 +455,7 @@ namespace VirtualPainting
 
                         if (!Settings.IsTestModeEnabled)
                         {
-                            this.PersonOutlineVisibility = Visibility.Visible;
+                            this.IsUserTakingPicture = true;
                             this.colorReader.IsPaused = false;
                         }
 
@@ -523,7 +523,7 @@ namespace VirtualPainting
 
                         if (!Settings.IsTestModeEnabled)
                         {
-                            this.PersonOutlineVisibility = Visibility.Collapsed;
+                            this.IsUserTakingPicture = true;
                             this.colorReader.IsPaused = true;
                         }
 
@@ -538,7 +538,7 @@ namespace VirtualPainting
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Waiting for hand to enter frame...");
-                        this.UserPointerVisibility = Visibility.Visible;
+                        this.IsUserPainting = true;
 
                         // Do not start the timer, this will be started in BodyReader_FrameArrived
                         // when the user pointer has entered the canvas.
@@ -548,7 +548,7 @@ namespace VirtualPainting
                     {
                         if (t.Destination != State.Painting)
                         {
-                            this.UserPointerVisibility = Visibility.Collapsed;
+                            this.IsUserPainting = false;
                         }
                     })
                 .Permit(Trigger.TimerTick, State.Painting)
@@ -564,12 +564,12 @@ namespace VirtualPainting
                         this.paintingSession = CreatePaintingSession();
                         this.timer.Interval = TimeSpan.FromSeconds(15);
 
-                        this.UserPointerVisibility = Visibility.Visible;
+                        this.IsUserPainting = true;
                         this.timer.Start();
                     })
                 .OnExit(t =>
                     {
-                        this.UserPointerVisibility = Visibility.Collapsed;
+                        this.IsUserPainting = false;
 
                         // Save the painting session if one exists
                         if ((t.Destination == State.WaitingForPresence) && (this.paintingSession != null))
