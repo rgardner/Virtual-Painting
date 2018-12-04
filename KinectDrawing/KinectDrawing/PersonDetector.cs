@@ -1,6 +1,4 @@
-﻿using System;
-using System.Windows;
-using LightBuzz.Vitruvius;
+﻿using System.Windows;
 using Microsoft.Kinect;
 
 namespace KinectDrawing
