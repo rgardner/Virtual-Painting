@@ -424,7 +424,7 @@ namespace VirtualPainting
 
         public StateMachine<State, Trigger> StateMachine { get; } = new StateMachine<State, Trigger>(State.WaitingForPresence);
 
-#pragma warning disable CS0067
+#pragma warning disable CS0067 // PropertyChanged is used by Fody-generated property setters
         public event PropertyChangedEventHandler PropertyChanged;
 #pragma warning restore
 

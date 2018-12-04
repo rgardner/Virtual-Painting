@@ -39,7 +39,7 @@ namespace VirtualPainting
 
         public int Value { get; private set; }
 
-#pragma warning disable CS0067
+#pragma warning disable CS0067 // PropertyChanged is used by Fody-generated property setters
         public event PropertyChangedEventHandler PropertyChanged;
 #pragma warning restore
 
