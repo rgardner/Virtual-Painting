@@ -9,7 +9,6 @@ namespace VirtualPainting
     /// </summary>
     class CountdownTimer : INotifyPropertyChanged
     {
-        private int value;
         private readonly DispatcherTimer timer = new DispatcherTimer();
 
         /// <summary>
@@ -24,7 +23,7 @@ namespace VirtualPainting
                 throw new ArgumentException("initialValue must be > 0");
             }
 
-            this.value = initialValue;
+            this.Value = initialValue;
 
             this.timer.Interval = TimeSpan.FromSeconds(1);
             this.timer.Tick += (s, e) =>
