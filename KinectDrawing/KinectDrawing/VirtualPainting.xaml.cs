@@ -291,7 +291,7 @@ namespace KinectDrawing
 
             public void Render(Body body, bool isPrimary)
             {
-                if (body.IsTracked)
+                if (body.IsTracked && PersonDetector.IsPersonPresent(body, CameraView))
                 {
                     DrawJointLine(this.headLine, body.Joints[JointType.Head], body.Joints[JointType.SpineShoulder], isPrimary);
                     DrawJointLine(this.rightShoulderLine, body.Joints[JointType.ShoulderRight], body.Joints[JointType.SpineShoulder], isPrimary);
