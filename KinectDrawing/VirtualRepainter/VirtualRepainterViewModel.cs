@@ -59,10 +59,6 @@ namespace VirtualRepainter
             this.OpenFindBackgroundImageFileDialogCommand = new RelayCommand(o => OpenFindBackgroundImageFileDialog());
         }
 
-#pragma warning disable CS0067 // PropertyChanged is used by Fody-generated property setters
-        public event PropertyChangedEventHandler PropertyChanged;
-#pragma warning restore
-
         public ImageSource CameraImageSource { get; private set; }
 
         public ObservableCollection<PaintLine> PaintLines { get; set; } = new ObservableCollection<PaintLine>();
@@ -71,6 +67,10 @@ namespace VirtualRepainter
         public ICommand OpenFindRecordingFileDialogCommand { get; }
         public bool IsOpenFindBackgroundImageFileDialogCommandEnabled { get; private set; } = true;
         public ICommand OpenFindBackgroundImageFileDialogCommand { get; }
+
+#pragma warning disable CS0067 // PropertyChanged is used by Fody-generated property setters
+        public event PropertyChangedEventHandler PropertyChanged;
+#pragma warning restore
 
         public void OpenRecordingFileDialog()
         {
