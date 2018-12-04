@@ -112,6 +112,7 @@
     <Compile Include="BrushColorCycler.cs" />
     <Compile Include="CountdownTimer.cs" />
     <Compile Include="PersonCalibrator.cs" />
+    <Compile Include="PersonDetectionState.cs" />
     <Compile Include="PersonDetector.cs" />
     <Compile Include="PersonOutline.xaml.cs">
       <DependentUpon>PersonOutline.xaml</DependentUpon>
