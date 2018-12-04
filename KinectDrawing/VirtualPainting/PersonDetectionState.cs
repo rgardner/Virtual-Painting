@@ -55,31 +55,47 @@ namespace VirtualPainting
 
         }
 
-        public static bool operator==(PersonDetectionState first, PersonDetectionState second)
+        public override bool Equals(object obj)
         {
-            if (first is null && second is null)
-            {
-                return true;
-            }
-            else if (first is null || second is null)
+            return Equals(obj as PersonDetectionState);
+        }
+
+        public bool Equals(PersonDetectionState other)
+        {
+            if (other is null)
             {
                 return false;
             }
 
-            return (first.IsHuman == second.IsHuman)
-                && (first.IsHuman == second.IsHuman)
-                && (first.IsInFrame == second.IsInFrame)
-                && (first.DistanceFromSensor == second.DistanceFromSensor);
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return (this.IsHuman == other.IsHuman)
+                && (this.IsHuman == other.IsHuman)
+                && (this.IsInFrame == other.IsInFrame)
+                && (this.DistanceFromSensor == other.DistanceFromSensor);
+        }
+
+        public static bool operator==(PersonDetectionState lhs, PersonDetectionState rhs)
+        {
+            if (lhs is null)
+            {
+                if (rhs is null)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            return lhs.Equals(rhs);
         }
 
         public static bool operator!=(PersonDetectionState first, PersonDetectionState second)
         {
             return !(first == second);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return base.Equals(obj);
         }
 
         public override int GetHashCode()
