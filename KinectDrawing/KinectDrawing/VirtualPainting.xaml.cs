@@ -310,54 +310,7 @@ namespace KinectDrawing
                     DrawJointPoint(this.elbowLeftPoint, body.Joints[JointType.ElbowLeft], isPrimary);
                     DrawJointPoint(this.elbowRightPoint, body.Joints[JointType.ElbowRight], isPrimary);
 
-                    var rightHand = body.Joints[JointType.HandRight];
-                    if (rightHand.TrackingState == TrackingState.Tracked)
-                    {
-                        var rightHandPoint = rightHand.Position.ToPoint(Visualization.Color);
-                        if (isPrimary)
-                        {
-                            // Move blue painting pointer
-                            ParentVP.UserPointerPositionX = rightHandPoint.X;
-                            ParentVP.UserPointerPositionY = rightHandPoint.Y;
-                        }
-
-                        if (isPrimary && CameraView.Contains(rightHandPoint))
-                        {
-                            // Hide the gray right hand dot
-                            this.rightHandPointer.Opacity = HiddenOpacity;
-                        }
-                        else
-                        {
-                            if (NewUserButton.Contains(rightHandPoint))
-                            {
-                                this.rightHandPointer.Fill = Settings.MyBurntOrange;
-                                this.rightHandPointer.Opacity = SelectNewUserOpacity;
-
-                                --this.rightHandPointer.Width;
-                                --this.rightHandPointer.Height;
-                                if (this.rightHandPointer.Width == 0 || this.rightHandPointer.Height == 0)
-                                {
-                                    this.rightHandPointer.Width = UserPointerRadiusInitialValue;
-                                    this.rightHandPointer.Height = UserPointerRadiusInitialValue;
-                                    ParentVP.StateMachine.Fire(Trigger.NewUserSelected);
-                                }
-                            }
-                            else
-                            {
-                                this.rightHandPointer.Fill = Settings.MyGray;
-                                this.rightHandPointer.Width = UserPointerRadiusInitialValue;
-                                this.rightHandPointer.Height = UserPointerRadiusInitialValue;
-                                this.rightHandPointer.Opacity = isPrimary ? PrimaryUserOpacity : SecondaryUserOpacity;
-                            }
-
-                            Canvas.SetLeft(this.rightHandPointer, rightHandPoint.X);
-                            Canvas.SetTop(this.rightHandPointer, rightHandPoint.Y);
-                        }
-                    }
-                    else
-                    {
-                        this.rightHandPointer.Opacity = HiddenOpacity;
-                    }
+                    DrawHandPointer(body, isPrimary);
                 }
                 else
                 {
@@ -450,6 +403,58 @@ namespace KinectDrawing
                         headPoint.Stroke = Settings.MyGray;
                         headPoint.Opacity = SecondaryUserOpacity;
                     }
+                }
+            }
+
+            private void DrawHandPointer(Body body, bool isPrimary)
+            {
+                var rightHand = body.Joints[JointType.HandRight];
+                if (rightHand.TrackingState == TrackingState.Tracked)
+                {
+                    var rightHandPoint = rightHand.Position.ToPoint(Visualization.Color);
+                    if (isPrimary)
+                    {
+                        // Move blue painting pointer
+                        ParentVP.UserPointerPositionX = rightHandPoint.X;
+                        ParentVP.UserPointerPositionY = rightHandPoint.Y;
+                    }
+
+                    if (isPrimary && CameraView.Contains(rightHandPoint))
+                    {
+                        // Hide the gray right hand dot
+                        this.rightHandPointer.Opacity = HiddenOpacity;
+                    }
+                    else
+                    {
+                        if (NewUserButton.Contains(rightHandPoint))
+                        {
+                            this.rightHandPointer.Fill = Settings.MyBurntOrange;
+                            this.rightHandPointer.Opacity = SelectNewUserOpacity;
+
+                            --this.rightHandPointer.Width;
+                            --this.rightHandPointer.Height;
+                            if (this.rightHandPointer.Width == 0 || this.rightHandPointer.Height == 0)
+                            {
+                                this.rightHandPointer.Width = UserPointerRadiusInitialValue;
+                                this.rightHandPointer.Height = UserPointerRadiusInitialValue;
+                                ParentVP.StateMachine.Fire(Trigger.NewUserSelected);
+                            }
+                        }
+                        else
+                        {
+                            this.rightHandPointer.Fill = Settings.MyGray;
+                            this.rightHandPointer.Width = UserPointerRadiusInitialValue;
+                            this.rightHandPointer.Height = UserPointerRadiusInitialValue;
+                            this.rightHandPointer.Opacity = isPrimary ? PrimaryUserOpacity : SecondaryUserOpacity;
+                        }
+
+                        Canvas.SetLeft(this.rightHandPointer, rightHandPoint.X);
+                        Canvas.SetTop(this.rightHandPointer, rightHandPoint.Y);
+                    }
+                }
+                else
+                {
+                    this.rightHandPointer.Opacity = HiddenOpacity;
                 }
             }
         }
