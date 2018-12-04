@@ -91,7 +91,7 @@
     <Compile Include="VirtualRepainterView.xaml.cs">
       <DependentUpon>VirtualRepainterView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="VirtualRepainterViewModel.cs" />
+    <Compile Include="ViewModels\VirtualRepainterViewModel.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

@@ -9,9 +9,8 @@ using System.Windows.Media.Imaging;
 using KinectRecorder;
 using Microsoft.Win32;
 using VirtualRepainter.PaintAlgorithm;
-using VirtualRepainter.ViewModels;
 
-namespace VirtualRepainter
+namespace VirtualRepainter.ViewModels
 {
     public class VirtualRepainterViewModel : INotifyPropertyChanged
     {
