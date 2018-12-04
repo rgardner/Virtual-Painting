@@ -54,6 +54,7 @@
                     <TextBlock HorizontalAlignment="Center" Text="{Binding SubHeaderText}" Foreground="#999B9E" FontSize="60" />
                 </StackPanel>
             </Grid>
+
             <Grid Grid.RowSpan="3" Grid.Column="0" Background="#2760A3">
                 <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0">
                     <ItemsControl ItemsSource="{Binding Path=PersonDetectionStates, UpdateSourceTrigger=PropertyChanged}">
@@ -69,15 +70,10 @@
                                     <Label Foreground="White" FontSize="17">
                                         <Label.Style>
                                             <Style TargetType="Label">
+                                                <Setter Property="Content" Value="IsPrimary: No" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding Path=IsPrimary}" Value="True">
                                                         <Setter Property="Content" Value="IsPrimary: Yes" />
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Path=IsPrimary}" Value="False">
-                                                        <Setter Property="Content" Value="IsPrimary: No" />
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Path=IsPrimary}" Value="null">
-                                                        <Setter Property="Content" Value="" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
@@ -86,15 +82,10 @@
                                     <Label Foreground="White" FontSize="17">
                                         <Label.Style>
                                             <Style TargetType="Label">
+                                                <Setter Property="Content" Value="IsHuman: No" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding Path=IsHuman}" Value="True">
                                                         <Setter Property="Content" Value="IsHuman: Yes" />
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Path=IsHuman}" Value="False">
-                                                        <Setter Property="Content" Value="IsHuman: No" />
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Path=IsHuman}" Value="null">
-                                                        <Setter Property="Content" Value="" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
@@ -104,15 +95,10 @@
                                     <Label Foreground="White" FontSize="17">
                                         <Label.Style>
                                             <Style TargetType="Label">
+                                                <Setter Property="Content" Value="IsInFrame: No" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding Path=IsInFrame}" Value="True">
                                                         <Setter Property="Content" Value="IsInFrame: Yes" />
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Path=IsInFrame}" Value="False">
-                                                        <Setter Property="Content" Value="IsInFrame: No" />
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding Path=IsInFrame}" Value="null">
-                                                        <Setter Property="Content" Value="" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
