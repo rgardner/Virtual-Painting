@@ -8,13 +8,10 @@ namespace VirtualPainting
 {
     public class PersonDetectionState : INotifyPropertyChanged
     {
-        public PersonDetectionState(int bodyIndex, bool? isPrimary = null, Body body = null, Rect? bodyPresenceArea = null, Rect? newUserButtonArea = null)
+        public PersonDetectionState(int bodyIndex, bool isPrimary, Body body, Rect bodyPresenceArea, Rect newUserButtonArea)
         {
             this.BodyIndex = bodyIndex;
-            if (isPrimary.HasValue && body != null && bodyPresenceArea.HasValue)
-            {
-                Refresh(isPrimary.Value, body, bodyPresenceArea.Value, newUserButtonArea.Value);
-            }
+            Refresh(isPrimary, body, bodyPresenceArea, newUserButtonArea);
         }
 
         public int BodyIndex { get; set; }
