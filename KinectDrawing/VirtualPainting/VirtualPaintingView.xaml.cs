@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -61,16 +60,8 @@ namespace VirtualPainting
             public double ExpectedMaxDistance => MedianDistanceFromCameraInMeters + Settings.BodyDistanceVariationThresholdInMeters;
         }
 
-        public class PersonDetectionState : BindableBase
+        public class PersonDetectionState : INotifyPropertyChanged
         {
-            private int bodyIndex;
-            private bool isPrimary = false;
-            private bool isHuman = false;
-            private bool isInFrame = false;
-            private string distanceFromSensor = string.Empty;
-            private int trackedJointCount = 0;
-            private int selectingNewUserButtonFrameCount = 0;
-
             public PersonDetectionState(int bodyIndex, bool? isPrimary = null, Body body = null, Rect? bodyPresenceArea = null, Rect? newUserButtonArea = null)
             {
                 this.BodyIndex = bodyIndex;
@@ -80,96 +71,23 @@ namespace VirtualPainting
                 }
             }
 
-            public int BodyIndex
-            {
-                get => this.bodyIndex;
-                set
-                {
-                    if (value != this.bodyIndex)
-                    {
-                        this.bodyIndex = value;
-                        NotifyPropertyChanged();
-                    }
-                }
-            }
+            public int BodyIndex { get; set; }
 
-            public bool IsPrimary
-            {
-                get => this.isPrimary;
-                set
-                {
-                    if (value != this.isPrimary)
-                    {
-                        this.isPrimary = value;
-                        NotifyPropertyChanged();
-                    }
-                }
-            }
+            public bool IsPrimary { get; set; }
 
-            public bool IsHuman
-            {
-                get => this.isHuman;
-                set
-                {
-                    if (value != this.isHuman)
-                    {
-                        this.isHuman = value;
-                        NotifyPropertyChanged();
-                    }
-                }
-            }
+            public bool IsHuman { get; set; }
 
-            public bool IsInFrame
-            {
-                get => this.isInFrame;
-                set
-                {
-                    if (value != this.isInFrame)
-                    {
-                        this.isInFrame = value;
-                        NotifyPropertyChanged();
-                    }
-                }
-            }
+            public bool IsInFrame { get; set; }
 
-            public string DistanceFromSensor
-            {
-                get => this.distanceFromSensor;
-                set
-                {
-                    if (value != this.distanceFromSensor)
-                    {
-                        this.distanceFromSensor = value;
-                        NotifyPropertyChanged();
-                    }
-                }
-            }
+            public string DistanceFromSensor { get; set; } = string.Empty;
 
-            public int TrackedJointCount
-            {
-                get => this.trackedJointCount;
-                set
-                {
-                    if (value != this.trackedJointCount)
-                    {
-                        this.trackedJointCount = value;
-                        NotifyPropertyChanged();
-                    }
-                }
-            }
+            public int TrackedJointCount { get; set; }
 
-            public int SelectingNewUserButtonFrameCount
-            {
-                get => this.selectingNewUserButtonFrameCount;
-                set
-                {
-                    if (value != this.selectingNewUserButtonFrameCount)
-                    {
-                        this.selectingNewUserButtonFrameCount = value;
-                        NotifyPropertyChanged();
-                    }
-                }
-            }
+            public int SelectingNewUserButtonFrameCount { get; set; }
+
+#pragma warning disable CS0067
+            public event PropertyChangedEventHandler PropertyChanged;
+#pragma warning restore
 
             public void Refresh(bool isPrimary, Body body, Rect bodyPresenceArea, Rect newUserButtonArea)
             {
@@ -477,24 +395,14 @@ namespace VirtualPainting
         private Rect newUserButtonRect;
 
         private CountdownTimer countdownTimer = null;
-        private string countdownValue = string.Empty;
 
         private SolidColorBrush currentBrush;
         private IPaintingSession paintingSession = null;
         private Person primaryPerson = null;
         private PersonCalibrator personCalibrator;
-        private string headerText = Properties.Resources.WaitingForPresenceHeader;
-        private string subHeaderText = Properties.Resources.WaitingForPresenceSubHeader;
-        private Visibility personOutlineVisibility = Visibility.Visible;
-        private Visibility userPointerVisibility = Visibility.Collapsed;
 
         private const double UserPointerRadiusInitialValue = 30;
-        private double userPointerPositionX = 0.0;
-        private double userPointerPositionY = 0.0;
-
         private const double HumanRatioTolerance = 0.2f;
-
-        private ObservableCollection<PersonDetectionState> personDetectionStates = new ObservableCollection<PersonDetectionState>();
 
         public VirtualPaintingView()
         {
@@ -584,129 +492,27 @@ namespace VirtualPainting
             this.DataContext = this;
         }
 
-        public string HeaderText
-        {
-            get => this.headerText;
+        public string HeaderText { get; private set; } = Properties.Resources.WaitingForPresenceHeader;
 
-            private set
-            {
-                if (value != this.headerText)
-                {
-                    this.headerText = value;
-                    NotifyPropertyChanged();
-                }
-            }
-        }
+        public string SubHeaderText { get; private set; } = Properties.Resources.WaitingForPresenceSubHeader;
 
-        public string SubHeaderText
-        {
-            get => this.subHeaderText;
+        public string CountdownValue { get; private set; }
 
-            private set
-            {
-                if (value != this.subHeaderText)
-                {
-                    this.subHeaderText = value;
-                    NotifyPropertyChanged();
-                }
-            }
-        }
+        public ObservableCollection<PersonDetectionState> PersonDetectionStates { get; set; } = new ObservableCollection<PersonDetectionState>();
 
-        public string CountdownValue
-        {
-            get => this.countdownValue;
+        public Visibility PersonOutlineVisibility { get; private set; } = Visibility.Visible;
 
-            private set
-            {
-                if (value != this.countdownValue)
-                {
-                    this.countdownValue = value;
-                    NotifyPropertyChanged();
-                }
-            }
-        }
+        public Visibility UserPointerVisibility { get; private set; } = Visibility.Collapsed;
 
-        public ObservableCollection<PersonDetectionState> PersonDetectionStates
-        {
-            get => this.personDetectionStates;
+        public double UserPointerPositionX { get; private set; }
 
-            private set
-            {
-                if (value != this.personDetectionStates)
-                {
-                    this.personDetectionStates = value;
-                    NotifyPropertyChanged();
-                }
-            }
-        }
-
-        public Visibility PersonOutlineVisibility
-        {
-            get => this.personOutlineVisibility;
-
-            private set
-            {
-                if (value != this.personOutlineVisibility)
-                {
-                    this.personOutlineVisibility = value;
-                    NotifyPropertyChanged();
-                }
-            }
-        }
-
-        public Visibility UserPointerVisibility
-        {
-            get => this.userPointerVisibility;
-
-            private set
-            {
-                if (value != this.userPointerVisibility)
-                {
-                    this.userPointerVisibility = value;
-                    NotifyPropertyChanged();
-                }
-            }
-        }
-
-        public double UserPointerPositionX
-        {
-            get => this.userPointerPositionX;
-
-            private set
-            {
-                if (value != this.userPointerPositionX)
-                {
-                    this.userPointerPositionX = value;
-                    NotifyPropertyChanged();
-                }
-            }
-        }
-
-        public double UserPointerPositionY
-        {
-            get => this.userPointerPositionY;
-
-            private set
-            {
-                if (value != this.userPointerPositionY)
-                {
-                    this.userPointerPositionY = value;
-                    NotifyPropertyChanged();
-                }
-            }
-        }
+        public double UserPointerPositionY { get; private set; }
 
         public StateMachine<State, Trigger> StateMachine { get; } = new StateMachine<State, Trigger>(State.WaitingForPresence);
 
-        /// <summary>
-        /// INotifyPropertyChanged event to allow window controls to bind to changeable data.
-        /// </summary>
+#pragma warning disable CS0067
         public event PropertyChangedEventHandler PropertyChanged;
-
-        private void NotifyPropertyChanged([CallerMemberName] string propertyName = "")
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
+#pragma warning restore
 
         private string GetSavedImagesDirectoryPath()
         {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Windows.Threading;
 
 namespace VirtualPainting
@@ -6,7 +7,7 @@ namespace VirtualPainting
     /// <summary>
     /// Counts down from an initial value at 1 second intervals.
     /// </summary>
-    class CountdownTimer : BindableBase
+    class CountdownTimer : INotifyPropertyChanged
     {
         private int value;
         private readonly DispatcherTimer timer = new DispatcherTimer();
@@ -36,19 +37,11 @@ namespace VirtualPainting
                 };
         }
 
-        public int Value
-        {
-            get => this.value;
+        public int Value { get; private set; }
 
-            private set
-            {
-                if (value != this.value)
-                {
-                    this.value = value;
-                    NotifyPropertyChanged();
-                }
-            }
-        }
+#pragma warning disable CS0067
+        public event PropertyChangedEventHandler PropertyChanged;
+#pragma warning restore
 
         public void Start()
         {
