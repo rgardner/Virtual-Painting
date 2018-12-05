@@ -62,8 +62,8 @@ namespace VirtualPainting
 
         private class Skeleton
         {
-            private const double PrimaryUserOpacity = 0.25;
-            private const double SecondaryUserOpacity = 0.10;
+            private const double PrimaryUserOpacity = 0.15;
+            private const double SecondaryUserOpacity = 0.05;
             private const double SelectNewUserOpacity = 1.0;
             private const double HiddenOpacity = 0.0;
 
@@ -263,9 +263,9 @@ namespace VirtualPainting
                             this.rightHandPointer.Fill = Settings.MyBurntOrange;
                             this.rightHandPointer.Opacity = SelectNewUserOpacity;
 
-                            --this.rightHandPointer.Width;
-                            --this.rightHandPointer.Height;
-                            if (this.rightHandPointer.Width == 0 || this.rightHandPointer.Height == 0)
+                            this.rightHandPointer.Width -= 0.5;
+                            this.rightHandPointer.Height -= 0.5;
+                            if (this.rightHandPointer.Width <= 0 || this.rightHandPointer.Height <= 0)
                             {
                                 this.rightHandPointer.Width = UserPointerRadiusInitialValue;
                                 this.rightHandPointer.Height = UserPointerRadiusInitialValue;
@@ -516,7 +516,7 @@ namespace VirtualPainting
 
                         if (!Settings.IsTestModeEnabled)
                         {
-                            this.IsUserTakingPicture = true;
+                            this.IsUserTakingPicture = false;
                             this.colorReader.IsPaused = true;
                         }
 
