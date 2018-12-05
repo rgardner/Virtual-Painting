@@ -4,7 +4,7 @@ Be who you want to be! Virtual Painting is a fun photo booth experience
 where you can take a selfie and then construct a new identity.
 
 This project is intended to be deployed in an exhibition environment, so it
-automatically resets back to the photo booth screen after 10 seconds of
+automatically resets back to the photo booth screen after 15 seconds of
 inactivity.
 
 ## Installation
