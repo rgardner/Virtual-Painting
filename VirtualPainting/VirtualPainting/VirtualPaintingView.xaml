@@ -122,6 +122,14 @@
                 <Rectangle Name="flashOverlay" Fill="White" Opacity="0" />
             </Grid>
         </Grid>
+        <Grid Background="#2760A3"
+              Visibility="{Binding InTransitionState, Converter={StaticResource BoolToVis}}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="{Binding TransitionHeaderText}"
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Foreground="#FFF" FontSize="110" />
+            </StackPanel>
+        </Grid>
         <Canvas Name="userPointerCanvas" />
         <Image Source="/Images/logo.png" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="300" Margin="10,10,-10,-10" />
     </Grid>

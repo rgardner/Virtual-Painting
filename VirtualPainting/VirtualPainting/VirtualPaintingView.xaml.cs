@@ -40,8 +40,10 @@ namespace VirtualPainting
             ConfirmingPresence,
             Countdown,
             Snapshot,
+            StartPaintTransition,
             Painting,
             SavingImage,
+            EndPaintTransition,
         };
 
         private class Person
@@ -373,6 +375,10 @@ namespace VirtualPainting
 
         public string SubHeaderText { get; private set; } = Properties.Resources.WaitingForPresenceSubHeader;
 
+        public bool InTransitionState { get; private set; } = false;
+
+        public string TransitionHeaderText { get; private set; } = string.Empty;
+
         public string CountdownValue { get; private set; }
 
         public string PaintTimeRemaining { get; private set; }
@@ -488,6 +494,25 @@ namespace VirtualPainting
                         this.timer.Interval = TimeSpan.FromSeconds(0.75);
                         this.timer.Start();
                     })
+                .Permit(Trigger.TimerTick, State.StartPaintTransition)
+                .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
+
+            this.StateMachine.Configure(State.StartPaintTransition)
+                .OnEntry(t =>
+                    {
+                        Debug.WriteLine("Start Paint Transition...");
+
+                        this.TransitionHeaderText = "Point your right hand at the screen";
+                        this.InTransitionState = true;
+
+                        this.timer.Interval = TimeSpan.FromSeconds(2);
+                        this.timer.Start();
+                    })
+                .OnExit(t =>
+                    {
+                        this.InTransitionState = false;
+                        this.TransitionHeaderText = string.Empty;
+                    })
                 .Permit(Trigger.TimerTick, State.Painting)
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
 
@@ -551,13 +576,32 @@ namespace VirtualPainting
                         this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height,
                             GetSavedImagesDirectoryPath(), GetSavedBackgroundImagesDirectoryPath());
 
-                        this.timer.Interval = TimeSpan.FromSeconds(4);
+                        this.timer.Interval = TimeSpan.FromSeconds(2);
                         this.timer.Start();
                     })
                 .OnExit(t =>
                     {
                         this.paintingSession.ClearCanvas(this.canvas);
                         this.paintingSession = null;
+                    })
+                .Permit(Trigger.TimerTick, State.EndPaintTransition)
+                .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
+
+            this.StateMachine.Configure(State.EndPaintTransition)
+                .OnEntry(t =>
+                    {
+                        Debug.WriteLine("End Paint Transition...");
+
+                        this.TransitionHeaderText = "Saved to the iPad";
+                        this.InTransitionState = true;
+
+                        this.timer.Interval = TimeSpan.FromSeconds(4);
+                        this.timer.Start();
+                    })
+                .OnExit(t =>
+                    {
+                        this.InTransitionState = false;
+                        this.TransitionHeaderText = string.Empty;
                     })
                 .Permit(Trigger.TimerTick, State.WaitingForPresence)
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
@@ -584,6 +628,11 @@ namespace VirtualPainting
                 case State.SavingImage:
                     this.HeaderText = Properties.Resources.SavingImageHeader;
                     this.SubHeaderText = Properties.Resources.SavingImageSubHeader;
+                    break;
+                case State.StartPaintTransition:
+                case State.EndPaintTransition:
+                    this.HeaderText = string.Empty;
+                    this.SubHeaderText = string.Empty;
                     break;
                 default:
                     Debug.Assert(false, $"Unknown State: {state}");
