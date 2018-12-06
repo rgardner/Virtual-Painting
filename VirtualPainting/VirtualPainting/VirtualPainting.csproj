@@ -92,10 +92,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Page Include="PersonOutline.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="UserPointer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -114,9 +110,6 @@
     <Compile Include="PersonCalibrator.cs" />
     <Compile Include="PersonDetectionState.cs" />
     <Compile Include="PersonDetector.cs" />
-    <Compile Include="PersonOutline.xaml.cs">
-      <DependentUpon>PersonOutline.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Settings.cs" />
     <Compile Include="PaintAlgorithm\IPaintAlgorithm.cs" />
     <Compile Include="PaintAlgorithm\HandTipRightLinePaintAlgorithm.cs" />

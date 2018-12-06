@@ -117,10 +117,6 @@
             </Grid>
 
             <Grid Name="canvasView" Grid.Row="1" Grid.Column="1">
-                <Viewbox>
-                    <local:PersonOutline Width="600" Height="500" Margin="-200,-50,0,0"
-                                         Visibility="{Binding IsUserTakingPicture, Converter={StaticResource BoolToVis}}" />
-                </Viewbox>
                 <TextBlock Text="{Binding CountdownValue}" FontSize="150" HorizontalAlignment="Center"
                            VerticalAlignment="Center" Opacity=".75" Foreground="#2760A3" />
                 <Rectangle Name="flashOverlay" Fill="White" Opacity="0" />

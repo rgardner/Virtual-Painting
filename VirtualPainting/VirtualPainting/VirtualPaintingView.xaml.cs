@@ -379,8 +379,6 @@ namespace VirtualPainting
 
         public ObservableCollection<PersonDetectionState> PersonDetectionStates { get; set; } = new ObservableCollection<PersonDetectionState>();
 
-        public bool IsUserTakingPicture { get; private set; } = true;
-
         public bool IsUserPainting { get; private set; }
 
         public double UserPointerPositionX { get; private set; }
@@ -420,7 +418,6 @@ namespace VirtualPainting
 
                         if (!Settings.IsTestModeEnabled)
                         {
-                            this.IsUserTakingPicture = true;
                             this.colorReader.IsPaused = false;
                         }
 
@@ -485,7 +482,6 @@ namespace VirtualPainting
 
                         if (!Settings.IsTestModeEnabled)
                         {
-                            this.IsUserTakingPicture = false;
                             this.colorReader.IsPaused = true;
                         }
 
