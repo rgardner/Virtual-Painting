@@ -63,7 +63,7 @@ namespace VirtualPainting
         private class Skeleton
         {
             private const double PrimaryUserOpacity = 0.30;
-            private const double SecondaryUserOpacity = 0.10;
+            private const double SecondaryUserOpacity = PrimaryUserOpacity;
             private const double SelectNewUserOpacity = 1.0;
             private const double HiddenOpacity = 0.0;
 
