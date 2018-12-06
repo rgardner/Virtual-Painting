@@ -41,7 +41,6 @@ namespace VirtualPainting
             ConfirmingPresence,
             Countdown,
             Snapshot,
-            HandPickup,
             Painting,
             SavingImage,
         };
@@ -523,29 +522,6 @@ namespace VirtualPainting
                         this.timer.Interval = TimeSpan.FromSeconds(0.75);
                         this.timer.Start();
                     })
-                .Permit(Trigger.TimerTick, State.HandPickup)
-                .Permit(Trigger.PersonLeaves, State.WaitingForPresence)
-                .Permit(Trigger.NewUserSelected, State.WaitingForPresence);
-
-            this.StateMachine.Configure(State.HandPickup)
-                .OnEntry(t =>
-                    {
-                        Debug.WriteLine("Waiting for hand to enter frame...");
-
-                        ResetUserPointerPosition();
-                        this.IsUserPainting = true;
-
-                        // Do not start the timer, this will be started in BodyReader_FrameArrived
-                        // when the user pointer has entered the canvas.
-                        this.timer.Interval = TimeSpan.FromSeconds(1.5);
-                    })
-                .OnExit(t =>
-                    {
-                        if (t.Destination != State.Painting)
-                        {
-                            this.IsUserPainting = false;
-                        }
-                    })
                 .Permit(Trigger.TimerTick, State.Painting)
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence)
                 .Permit(Trigger.NewUserSelected, State.WaitingForPresence);
@@ -555,11 +531,13 @@ namespace VirtualPainting
                     {
                         Debug.WriteLine("Painting...");
 
+                        ResetUserPointerPosition();
+                        this.IsUserPainting = true;
+
                         this.currentBrush = GetRandomBrush();
                         this.paintingSession = CreatePaintingSession();
                         this.timer.Interval = TimeSpan.FromSeconds(10);
 
-                        this.IsUserPainting = true;
                         this.timer.Start();
                     })
                 .OnExit(t =>
@@ -596,7 +574,7 @@ namespace VirtualPainting
                         this.paintingSession.ClearCanvas(this.canvas);
                         this.paintingSession = null;
                     })
-                .Permit(Trigger.TimerTick, State.HandPickup)
+                .Permit(Trigger.TimerTick, State.Painting)
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence)
                 .Permit(Trigger.NewUserSelected, State.WaitingForPresence);
         }
@@ -615,7 +593,6 @@ namespace VirtualPainting
                     this.HeaderText = Properties.Resources.SnapshotHeader;
                     this.SubHeaderText = string.Empty;
                     break;
-                case State.HandPickup:
                 case State.Painting:
                     this.HeaderText = Properties.Resources.PaintingHeader;
                     this.SubHeaderText = Properties.Resources.PaintingSubHeader;
@@ -710,22 +687,11 @@ namespace VirtualPainting
                                     // Calibrate the primary person's distance
                                     this.personCalibrator.AddDistanceFromCamera(primaryBody.DistanceFromSensor());
                                 }
-                                else if (this.StateMachine.IsInState(State.HandPickup) || this.StateMachine.IsInState(State.Painting))
+                                else if (this.StateMachine.IsInState(State.Painting))
                                 {
-                                    if (this.StateMachine.IsInState(State.HandPickup))
-                                    {
-                                        if (!this.timer.IsEnabled && IsJointInCanvasView(primaryBody.Joints[JointType.HandRight]))
-                                        {
-                                            Debug.WriteLine("Hand entered frame");
-                                            this.timer.Start();
-                                        }
-                                    }
-                                    else if (this.StateMachine.IsInState(State.Painting))
-                                    {
-                                        var primaryBodyAsSensorBody = new SensorBody(primaryBody, this.sensor);
-                                        var frameAsSensorFrame = new SensorBodyFrame(frame, this.sensor);
-                                        this.paintingSession.Paint(primaryBodyAsSensorBody, this.currentBrush, this.canvas, frameAsSensorFrame);
-                                    }
+                                    var primaryBodyAsSensorBody = new SensorBody(primaryBody, this.sensor);
+                                    var frameAsSensorFrame = new SensorBodyFrame(frame, this.sensor);
+                                    this.paintingSession.Paint(primaryBodyAsSensorBody, this.currentBrush, this.canvas, frameAsSensorFrame);
                                 }
                             }
                             else
