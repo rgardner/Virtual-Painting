@@ -574,7 +574,7 @@ namespace VirtualPainting
                         this.paintingSession.ClearCanvas(this.canvas);
                         this.paintingSession = null;
                     })
-                .Permit(Trigger.TimerTick, State.Painting)
+                .Permit(Trigger.TimerTick, State.WaitingForPresence)
                 .Permit(Trigger.PersonLeaves, State.WaitingForPresence)
                 .Permit(Trigger.NewUserSelected, State.WaitingForPresence);
         }
