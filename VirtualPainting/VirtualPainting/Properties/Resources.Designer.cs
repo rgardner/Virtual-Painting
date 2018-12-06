@@ -98,7 +98,7 @@ namespace VirtualPainting.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to to iPad for future reference.
+        ///   Looks up a localized string similar to to the iPad for future reference.
         /// </summary>
         internal static string SavingImageSubHeader {
             get {
