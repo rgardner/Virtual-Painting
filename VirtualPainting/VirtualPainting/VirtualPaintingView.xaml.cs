@@ -531,6 +531,8 @@ namespace VirtualPainting
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Waiting for hand to enter frame...");
+
+                        ResetUserPointerPosition();
                         this.IsUserPainting = true;
 
                         // Do not start the timer, this will be started in BodyReader_FrameArrived
@@ -633,6 +635,12 @@ namespace VirtualPainting
             var sb = (Storyboard)FindResource("FlashAnimation");
             Storyboard.SetTarget(sb, this.flashOverlay);
             sb.Begin();
+        }
+
+        private void ResetUserPointerPosition()
+        {
+            this.UserPointerPositionX = (this.width / 2) + 100;
+            this.UserPointerPositionY = this.height / 2;
         }
 
         private static SolidColorBrush GetRandomBrush()
