@@ -105,19 +105,11 @@
                                         </Label.Style>
                                     </Label>
                                     <Label Content="{Binding TrackedJointCount}" ContentStringFormat="TrackedJointCount: {0}" Foreground="White" FontSize="17" />
-                                    <Label Content="{Binding SelectingNewUserButtonFrameCount}" ContentStringFormat="SelectingNewUserButtonFrameCount: {0}" Foreground="White" FontSize="17" />
                                 </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </StackPanel>
-            </Grid>
-
-            <Grid Name="pointerZone" Grid.Row="1" Grid.Column="2">
-                <Border Name="newUserButton" Background="#999B9E" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="150" Height="50" CornerRadius="20,20,20,20"
-                        Margin="40,0,0,0">
-                    <TextBlock Text="New User" Foreground="White" FontSize="30"  HorizontalAlignment="Center" VerticalAlignment="Center" />
-                </Border>
             </Grid>
 
             <Grid Name="canvasView" Grid.Row="1" Grid.Column="1">

@@ -32,7 +32,6 @@ namespace VirtualPainting
             PersonEnters,
             PersonLeaves,
             TimerTick,
-            NewUserSelected,
         };
 
         public enum State
@@ -63,7 +62,6 @@ namespace VirtualPainting
         {
             private const double PrimaryUserOpacity = 0.50;
             private const double SecondaryUserOpacity = PrimaryUserOpacity;
-            private const double SelectNewUserOpacity = 1.0;
             private const double HiddenOpacity = 0.0;
 
             private readonly Line headLine = CreateLine();
@@ -88,7 +86,6 @@ namespace VirtualPainting
             public static VirtualPaintingView ParentVP { get; set; }
             public static Canvas CanvasScreen { get; set; }
             public static Rect CameraView { get; set; }
-            public static Rect NewUserButton { get; set; }
 
             public Skeleton()
             {
@@ -257,27 +254,10 @@ namespace VirtualPainting
                     }
                     else
                     {
-                        if (NewUserButton.Contains(rightHandPoint))
-                        {
-                            this.rightHandPointer.Fill = Settings.MyBurntOrange;
-                            this.rightHandPointer.Opacity = SelectNewUserOpacity;
-
-                            this.rightHandPointer.Width -= 0.75;
-                            this.rightHandPointer.Height -= 0.75;
-                            if (this.rightHandPointer.Width <= 0 || this.rightHandPointer.Height <= 0)
-                            {
-                                this.rightHandPointer.Width = UserPointerRadiusInitialValue;
-                                this.rightHandPointer.Height = UserPointerRadiusInitialValue;
-                                ParentVP.StateMachine.Fire(Trigger.NewUserSelected);
-                            }
-                        }
-                        else
-                        {
-                            this.rightHandPointer.Fill = Settings.MyGray;
-                            this.rightHandPointer.Width = UserPointerRadiusInitialValue;
-                            this.rightHandPointer.Height = UserPointerRadiusInitialValue;
-                            this.rightHandPointer.Opacity = isPrimary ? PrimaryUserOpacity : SecondaryUserOpacity;
-                        }
+                        this.rightHandPointer.Fill = Settings.MyGray;
+                        this.rightHandPointer.Width = UserPointerRadiusInitialValue;
+                        this.rightHandPointer.Height = UserPointerRadiusInitialValue;
+                        this.rightHandPointer.Opacity = isPrimary ? PrimaryUserOpacity : SecondaryUserOpacity;
 
                         Canvas.SetLeft(this.rightHandPointer, rightHandPoint.X);
                         Canvas.SetTop(this.rightHandPointer, rightHandPoint.Y);
@@ -303,8 +283,6 @@ namespace VirtualPainting
         private WriteableBitmap bitmap = null;
 
         private Rect bodyPresenceArea;
-        private Rect pointerZoneRect;
-        private Rect newUserButtonRect;
 
         private CountdownTimer countdownTimer = null;
 
@@ -322,12 +300,6 @@ namespace VirtualPainting
 
             Loaded += (s, e) =>
                 {
-                    Point newUserButtonTopLeftPoint = this.newUserButton.TranslatePoint(new Point(), this);
-                    this.newUserButtonRect = new Rect(newUserButtonTopLeftPoint.X, newUserButtonTopLeftPoint.Y, this.newUserButton.ActualWidth, this.newUserButton.ActualHeight);
-
-                    Point pointerZoneTopLeftPoint = this.pointerZone.TranslatePoint(new Point(), this);
-                    this.pointerZoneRect = new Rect(pointerZoneTopLeftPoint.X, pointerZoneTopLeftPoint.Y, this.pointerZone.ActualWidth, this.pointerZone.ActualHeight);
-
                     Point canvasViewTopLeftPoint = this.canvasView.TranslatePoint(new Point(), this);
                     this.bodyPresenceArea = new Rect(canvasViewTopLeftPoint.X, canvasViewTopLeftPoint.Y, this.canvasView.ActualWidth, this.canvasView.ActualHeight);
 
@@ -338,7 +310,6 @@ namespace VirtualPainting
 
                     Skeleton.CanvasScreen = this.userPointerCanvas;
                     Skeleton.CameraView = this.bodyPresenceArea;
-                    Skeleton.NewUserButton = this.newUserButtonRect;
 
                     for (int i = 0; i < this.skeletons.Count; i++)
                     {
@@ -453,8 +424,7 @@ namespace VirtualPainting
 
                         this.primaryPerson = null;
                     })
-                .Permit(Trigger.PersonEnters, State.ConfirmingPresence)
-                .Ignore(Trigger.NewUserSelected);
+                .Permit(Trigger.PersonEnters, State.ConfirmingPresence);
 
             this.StateMachine.Configure(State.ConfirmingPresence)
                 .OnEntry(t =>
@@ -470,8 +440,7 @@ namespace VirtualPainting
                         this.personCalibrator = null;
                     })
                 .Permit(Trigger.TimerTick, State.Countdown)
-                .Permit(Trigger.PersonLeaves, State.WaitingForPresence)
-                .Permit(Trigger.NewUserSelected, State.WaitingForPresence);
+                .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
 
             this.StateMachine.Configure(State.Countdown)
                 .OnEntry(t =>
@@ -504,8 +473,7 @@ namespace VirtualPainting
                         this.CountdownValue = string.Empty;
                     })
                 .Permit(Trigger.TimerTick, State.Snapshot)
-                .Permit(Trigger.PersonLeaves, State.WaitingForPresence)
-                .Permit(Trigger.NewUserSelected, State.WaitingForPresence);
+                .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
 
             this.StateMachine.Configure(State.Snapshot)
                 .OnEntry(t =>
@@ -523,8 +491,7 @@ namespace VirtualPainting
                         this.timer.Start();
                     })
                 .Permit(Trigger.TimerTick, State.Painting)
-                .Permit(Trigger.PersonLeaves, State.WaitingForPresence)
-                .Permit(Trigger.NewUserSelected, State.WaitingForPresence);
+                .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
 
             this.StateMachine.Configure(State.Painting)
                 .OnEntry(t =>
@@ -554,8 +521,7 @@ namespace VirtualPainting
                         }
                     })
                 .Permit(Trigger.TimerTick, State.SavingImage)
-                .Permit(Trigger.PersonLeaves, State.WaitingForPresence)
-                .Permit(Trigger.NewUserSelected, State.WaitingForPresence);
+                .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
 
             this.StateMachine.Configure(State.SavingImage)
                 .OnEntry(t =>
@@ -575,8 +541,7 @@ namespace VirtualPainting
                         this.paintingSession = null;
                     })
                 .Permit(Trigger.TimerTick, State.WaitingForPresence)
-                .Permit(Trigger.PersonLeaves, State.WaitingForPresence)
-                .Permit(Trigger.NewUserSelected, State.WaitingForPresence);
+                .Permit(Trigger.PersonLeaves, State.WaitingForPresence);
         }
 
         private void SetHeadersForState(State state)
@@ -738,12 +703,12 @@ namespace VirtualPainting
                         if (personDetectionState == null)
                         {
                             // Add new person
-                            this.PersonDetectionStates.Add(new PersonDetectionState(i, isPrimary, body, this.bodyPresenceArea, this.newUserButtonRect));
+                            this.PersonDetectionStates.Add(new PersonDetectionState(i, isPrimary, body, this.bodyPresenceArea));
                         }
                         else
                         {
                             // Refresh existing person
-                            personDetectionState.Refresh(isPrimary, body, this.bodyPresenceArea, this.newUserButtonRect);                            
+                            personDetectionState.Refresh(isPrimary, body, this.bodyPresenceArea);                            
                         }
                     }
                 }

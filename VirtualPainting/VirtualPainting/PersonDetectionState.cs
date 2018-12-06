@@ -8,10 +8,10 @@ namespace VirtualPainting
 {
     public class PersonDetectionState : INotifyPropertyChanged
     {
-        public PersonDetectionState(int bodyIndex, bool isPrimary, Body body, Rect bodyPresenceArea, Rect newUserButtonArea)
+        public PersonDetectionState(int bodyIndex, bool isPrimary, Body body, Rect bodyPresenceArea)
         {
             this.BodyIndex = bodyIndex;
-            Refresh(isPrimary, body, bodyPresenceArea, newUserButtonArea);
+            Refresh(isPrimary, body, bodyPresenceArea);
         }
 
         public int BodyIndex { get; set; }
@@ -26,30 +26,17 @@ namespace VirtualPainting
 
         public int TrackedJointCount { get; set; }
 
-        public int SelectingNewUserButtonFrameCount { get; set; }
-
 #pragma warning disable CS0067 // PropertyChanged is used by Fody-generated property setters
         public event PropertyChangedEventHandler PropertyChanged;
 #pragma warning restore
 
-        public void Refresh(bool isPrimary, Body body, Rect bodyPresenceArea, Rect newUserButtonArea)
+        public void Refresh(bool isPrimary, Body body, Rect bodyPresenceArea)
         {
             this.IsPrimary = isPrimary;
             this.IsHuman = body.IsHuman();
             this.IsInFrame = PersonDetector.IsInFrame(body, bodyPresenceArea);
             this.DistanceFromSensor = body.DistanceFromSensor().ToString("0.00");
             this.TrackedJointCount = body.TrackedJoints(includeInferred: false).Count();
-
-            var handPoint = body.Joints[JointType.HandRight].Position.ToPoint(Visualization.Color);
-            if (newUserButtonArea.Contains(handPoint))
-            {
-                this.SelectingNewUserButtonFrameCount++;
-            }
-            else
-            {
-                this.SelectingNewUserButtonFrameCount = 0;
-            }
-
         }
 
         public override bool Equals(object obj)

@@ -10,13 +10,11 @@ namespace VirtualPainting.UnitTests
         public void PersonDetectionState_Equivalence()
         {
             var bodyPresenceArea = new Rect();
-            var newUserButtonArea = new Rect();
             var state = new PersonDetectionState(
                 bodyIndex: 0,
                 isPrimary: true,
                 body: null,
-                bodyPresenceArea: bodyPresenceArea,
-                newUserButtonArea: newUserButtonArea);
+                bodyPresenceArea: bodyPresenceArea);
 
             // Reflexive
             Assert.IsTrue(state.Equals(state));
@@ -30,8 +28,7 @@ namespace VirtualPainting.UnitTests
                 bodyIndex: 0,
                 isPrimary: true,
                 body: null,
-                bodyPresenceArea: bodyPresenceArea,
-                newUserButtonArea: newUserButtonArea);
+                bodyPresenceArea: bodyPresenceArea);
 
             // Symmetric
             Assert.AreEqual(stateCopy1.Equals(state), state.Equals(stateCopy1));
@@ -42,8 +39,7 @@ namespace VirtualPainting.UnitTests
                 bodyIndex: 0,
                 isPrimary: true,
                 body: null,
-                bodyPresenceArea: bodyPresenceArea,
-                newUserButtonArea: newUserButtonArea);
+                bodyPresenceArea: bodyPresenceArea);
 
             Assert.AreEqual(state.Equals(stateCopy2), state.Equals(stateCopy1) && stateCopy1.Equals(stateCopy2));
             Assert.AreEqual(state == stateCopy2, state == stateCopy1 && stateCopy1 == stateCopy2);
@@ -56,8 +52,7 @@ namespace VirtualPainting.UnitTests
                 bodyIndex: 0,
                 isPrimary: true,
                 body: null,
-                bodyPresenceArea: new Rect(),
-                newUserButtonArea: new Rect());
+                bodyPresenceArea: new Rect());
 
             Assert.IsFalse(state.Equals(null));
             Assert.IsFalse(state == null);
@@ -68,8 +63,7 @@ namespace VirtualPainting.UnitTests
                 bodyIndex: 1,
                 isPrimary: false,
                 body: null,
-                bodyPresenceArea: new Rect(),
-                newUserButtonArea: new Rect());
+                bodyPresenceArea: new Rect());
 
             Assert.IsFalse(state.Equals(stateCopy));
             Assert.IsFalse(state == stateCopy);
