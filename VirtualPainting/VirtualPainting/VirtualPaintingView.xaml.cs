@@ -263,8 +263,8 @@ namespace VirtualPainting
                             this.rightHandPointer.Fill = Settings.MyBurntOrange;
                             this.rightHandPointer.Opacity = SelectNewUserOpacity;
 
-                            this.rightHandPointer.Width -= 0.5;
-                            this.rightHandPointer.Height -= 0.5;
+                            this.rightHandPointer.Width -= 0.75;
+                            this.rightHandPointer.Height -= 0.75;
                             if (this.rightHandPointer.Width <= 0 || this.rightHandPointer.Height <= 0)
                             {
                                 this.rightHandPointer.Width = UserPointerRadiusInitialValue;
