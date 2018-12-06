@@ -375,6 +375,8 @@ namespace VirtualPainting
 
         public string CountdownValue { get; private set; }
 
+        public string PaintTimeRemaining { get; private set; }
+
         public ObservableCollection<PersonDetectionState> PersonDetectionStates { get; set; } = new ObservableCollection<PersonDetectionState>();
 
         public bool IsUserTakingPicture { get; private set; } = true;
@@ -503,13 +505,34 @@ namespace VirtualPainting
 
                         this.currentBrush = GetRandomBrush();
                         this.paintingSession = CreatePaintingSession();
-                        this.timer.Interval = TimeSpan.FromSeconds(10);
 
-                        this.timer.Start();
+                        const int initialPaintTimeInSeconds = 10;
+                        this.countdownTimer = new CountdownTimer(initialPaintTimeInSeconds);
+                        this.countdownTimer.PropertyChanged += (s, e) =>
+                            {
+                                if (string.Equals(e.PropertyName, "Value"))
+                                {
+                                    if (this.countdownTimer.Value == 0)
+                                    {
+                                        this.StateMachine.Fire(Trigger.TimerTick);
+                                    }
+                                    else
+                                    {
+                                        this.PaintTimeRemaining = this.countdownTimer.Value.ToString();
+                                    }
+                                }
+                            };
+
+                        this.PaintTimeRemaining = initialPaintTimeInSeconds.ToString();
+                        this.countdownTimer.Start();
                     })
                 .OnExit(t =>
                     {
                         this.IsUserPainting = false;
+
+                        this.countdownTimer.Stop();
+                        this.countdownTimer = null;
+                        this.PaintTimeRemaining = string.Empty;
 
                         // Save the painting session if one exists
                         if ((t.Destination == State.WaitingForPresence) && (this.paintingSession != null))

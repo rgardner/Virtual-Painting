@@ -110,6 +110,10 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </StackPanel>
+                <Label Content="{Binding Path=PaintTimeRemaining}" ContentStringFormat=":{0}"
+                       Foreground="White" FontSize="17"
+                       HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,10,0"
+                       />
             </Grid>
 
             <Grid Name="canvasView" Grid.Row="1" Grid.Column="1">
