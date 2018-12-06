@@ -505,7 +505,7 @@ namespace VirtualPainting
                         this.TransitionHeaderText = "Point your right hand at the screen";
                         this.InTransitionState = true;
 
-                        this.timer.Interval = TimeSpan.FromSeconds(2);
+                        this.timer.Interval = TimeSpan.FromSeconds(3);
                         this.timer.Start();
                     })
                 .OnExit(t =>
@@ -553,7 +553,7 @@ namespace VirtualPainting
 
                         this.countdownTimer.Stop();
                         this.countdownTimer = null;
-                        this.PaintTimeRemaining = string.Empty;
+                        this.PaintTimeRemaining = null;
 
                         // Save the painting session if one exists
                         if ((t.Destination == State.WaitingForPresence) && (this.paintingSession != null))
