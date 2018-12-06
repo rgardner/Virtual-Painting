@@ -535,7 +535,7 @@ namespace VirtualPainting
 
                         // Do not start the timer, this will be started in BodyReader_FrameArrived
                         // when the user pointer has entered the canvas.
-                        this.timer.Interval = TimeSpan.FromSeconds(2);
+                        this.timer.Interval = TimeSpan.FromSeconds(1.5);
                     })
                 .OnExit(t =>
                     {
