@@ -62,8 +62,8 @@ namespace VirtualPainting
 
         private class Skeleton
         {
-            private const double PrimaryUserOpacity = 0.15;
-            private const double SecondaryUserOpacity = 0.05;
+            private const double PrimaryUserOpacity = 0.30;
+            private const double SecondaryUserOpacity = 0.10;
             private const double SelectNewUserOpacity = 1.0;
             private const double HiddenOpacity = 0.0;
 
@@ -555,7 +555,7 @@ namespace VirtualPainting
 
                         this.currentBrush = GetRandomBrush();
                         this.paintingSession = CreatePaintingSession();
-                        this.timer.Interval = TimeSpan.FromSeconds(15);
+                        this.timer.Interval = TimeSpan.FromSeconds(10);
 
                         this.IsUserPainting = true;
                         this.timer.Start();
@@ -586,7 +586,7 @@ namespace VirtualPainting
                         this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height,
                             GetSavedImagesDirectoryPath(), GetSavedBackgroundImagesDirectoryPath());
 
-                        this.timer.Interval = TimeSpan.FromSeconds(7);
+                        this.timer.Interval = TimeSpan.FromSeconds(4);
                         this.timer.Start();
                     })
                 .OnExit(t =>
