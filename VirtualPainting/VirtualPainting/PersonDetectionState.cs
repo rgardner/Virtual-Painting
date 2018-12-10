@@ -56,10 +56,11 @@ namespace VirtualPainting
                 return true;
             }
 
-            return (this.IsHuman == other.IsHuman)
+            return (this.IsPrimary == other.IsPrimary)
                 && (this.IsHuman == other.IsHuman)
                 && (this.IsInFrame == other.IsInFrame)
-                && (this.DistanceFromSensor == other.DistanceFromSensor);
+                && (this.DistanceFromSensor == other.DistanceFromSensor)
+                && (this.TrackedJointCount == other.TrackedJointCount);
         }
 
         public static bool operator==(PersonDetectionState lhs, PersonDetectionState rhs)
@@ -85,9 +86,11 @@ namespace VirtualPainting
         public override int GetHashCode()
         {
             var hashCode = -1494063407;
+            hashCode = hashCode * -1521134295 + this.IsPrimary.GetHashCode();
             hashCode = hashCode * -1521134295 + this.IsHuman.GetHashCode();
             hashCode = hashCode * -1521134295 + this.IsInFrame.GetHashCode();
             hashCode = hashCode * -1521134295 + this.DistanceFromSensor.GetHashCode();
+            hashCode = hashCode * -1521134295 + this.TrackedJointCount.GetHashCode();
             return hashCode;
         }
     }
