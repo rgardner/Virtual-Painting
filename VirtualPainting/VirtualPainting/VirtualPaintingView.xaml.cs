@@ -792,11 +792,11 @@ namespace VirtualPainting
             var paintAlgorithm = (IPaintAlgorithm)Activator.CreateInstance(Settings.PaintAlgorithm);
             if (Settings.IsTestModeEnabled)
             {
-                return new TestModePaintingSession(this.sensor, paintAlgorithm);
+                return new TestModePaintingSession(paintAlgorithm);
             }
             else
             {
-                return new DefaultPaintingSession(this.sensor, paintAlgorithm);
+                return new DefaultPaintingSession(paintAlgorithm);
             }
         }
 

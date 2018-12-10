@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Windows.Controls;
@@ -9,24 +8,19 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using VirtualPainting.PaintAlgorithm;
 using KinectRecorder;
-using Microsoft.Kinect;
 using Newtonsoft.Json;
 
 namespace VirtualPainting.PaintingSession
 {
     class TestModePaintingSession : IPaintingSession
     {
-        private readonly KinectSensor sensor;
         private readonly IPaintAlgorithm paintAlgorithm;
-        private Brush brush;
-        private readonly BrushColorCycler brushColorCycler = new BrushColorCycler();
         private readonly BackgroundWorker backgroundWorker = new BackgroundWorker();
 
         private readonly SensorRecorder sensorRecorder = new SensorRecorder();
 
-        public TestModePaintingSession(KinectSensor sensor, IPaintAlgorithm paintAlgorithm)
+        public TestModePaintingSession(IPaintAlgorithm paintAlgorithm)
         {
-            this.sensor = sensor;
             this.paintAlgorithm = paintAlgorithm;
 
             this.backgroundWorker.DoWork += (s, e) =>
@@ -68,15 +62,7 @@ namespace VirtualPainting.PaintingSession
 
         public void Paint(SensorBody body, Brush brush, Canvas canvas, SensorBodyFrame bodyFrame)
         {
-            // Cycle color every 50 points to ease debugging
-            bool startNewSubSession = (this.sensorRecorder.SensorData.BodyFrames.Count % 50) == 0;
-            if (startNewSubSession)
-            {
-                this.brush = this.brushColorCycler.Next();
-            }
-
-            this.paintAlgorithm.Paint(body, this.brush, canvas, startNewSubSession);
-
+            this.paintAlgorithm.Paint(body, brush, canvas);
             this.sensorRecorder.LogBodyFrame(bodyFrame);
         }
 

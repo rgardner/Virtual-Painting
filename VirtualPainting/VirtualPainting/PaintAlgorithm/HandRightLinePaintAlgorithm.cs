@@ -10,7 +10,7 @@ namespace VirtualPainting.PaintAlgorithm
     {
         private Point? lastPoint = null;
 
-        public void Paint(SensorBody body, Brush brush, Canvas canvas, bool _startNewSubSession)
+        public void Paint(SensorBody body, Brush brush, Canvas canvas)
         {
             var hand = body.HandRight;
             if (hand.TrackingState == SensorTrackingState.Tracked)

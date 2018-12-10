@@ -12,19 +12,16 @@ using System.Windows.Media.Imaging;
 using VirtualPainting.PaintAlgorithm;
 using VirtualPainting.Properties;
 using KinectRecorder;
-using Microsoft.Kinect;
 
 namespace VirtualPainting.PaintingSession
 {
     class DefaultPaintingSession : IPaintingSession
     {
-        private readonly KinectSensor sensor;
         private readonly IPaintAlgorithm paintingAlgorithm;
         private readonly BackgroundWorker backgroundWorker = new BackgroundWorker();
 
-        public DefaultPaintingSession(KinectSensor sensor, IPaintAlgorithm paintingAlgorithm)
+        public DefaultPaintingSession(IPaintAlgorithm paintingAlgorithm)
         {
-            this.sensor = sensor;
             this.paintingAlgorithm = paintingAlgorithm;
 
             this.backgroundWorker.DoWork += (s, e) =>

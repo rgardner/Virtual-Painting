@@ -6,6 +6,6 @@ namespace VirtualPainting.PaintAlgorithm
 {
     public interface IPaintAlgorithm
     {
-        void Paint(SensorBody body, Brush brush, Canvas canvas, bool startNewSubSession = false);
+        void Paint(SensorBody body, Brush brush, Canvas canvas);
     }
 }
