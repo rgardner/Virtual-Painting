@@ -29,29 +29,30 @@ namespace VirtualPainting
         /// <returns></returns>
         public static bool IsHuman(this Body body)
         {
-            double headSize = body.Length(JointType.SpineShoulder, JointType.Head);
+            return true;
+            //double headSize = body.Length(JointType.SpineShoulder, JointType.Head);
 
-            double legLengthRatio = body.Length(JointType.FootLeft, JointType.KneeLeft, JointType.HipLeft) / headSize;
-            double bodyWidthRatio = body.Length(JointType.ShoulderLeft, JointType.SpineShoulder, JointType.ShoulderRight) / headSize;
-            double torsoLengthRatio = body.Length(JointType.SpineBase, JointType.SpineShoulder) / headSize;
+            //double legLengthRatio = body.Length(JointType.FootLeft, JointType.KneeLeft, JointType.HipLeft) / headSize;
+            //double bodyWidthRatio = body.Length(JointType.ShoulderLeft, JointType.SpineShoulder, JointType.ShoulderRight) / headSize;
+            //double torsoLengthRatio = body.Length(JointType.SpineBase, JointType.SpineShoulder) / headSize;
 
-            // (actual, expected)
-            var ratios = new Tuple<double, double>[] {
-                new Tuple<double, double>(legLengthRatio, HumanRatios.LegLength),
-                new Tuple<double, double>(bodyWidthRatio, HumanRatios.BodyWidth),
-                new Tuple<double, double>(torsoLengthRatio, HumanRatios.TorsoLength),
-            };
+            //// (actual, expected)
+            //var ratios = new Tuple<double, double>[] {
+            //    new Tuple<double, double>(legLengthRatio, HumanRatios.LegLength),
+            //    new Tuple<double, double>(bodyWidthRatio, HumanRatios.BodyWidth),
+            //    new Tuple<double, double>(torsoLengthRatio, HumanRatios.TorsoLength),
+            //};
 
-            foreach (var actualExpectedRatio in ratios)
-            {
-                double diff = actualExpectedRatio.Item1 - actualExpectedRatio.Item2;
-                if (Math.Abs(diff) <= Settings.HumanRatioTolerance)
-                {
-                    return true;
-                }
-            }
+            //foreach (var actualExpectedRatio in ratios)
+            //{
+            //    double diff = actualExpectedRatio.Item1 - actualExpectedRatio.Item2;
+            //    if (Math.Abs(diff) <= Settings.HumanRatioTolerance)
+            //    {
+            //        return true;
+            //    }
+            //}
 
-            return false;
+            //return false;
         }
 
         public static double DistanceFromSensor(this Body body)
