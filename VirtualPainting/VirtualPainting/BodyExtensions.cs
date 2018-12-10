@@ -20,9 +20,7 @@ namespace VirtualPainting
         /// <summary>
         /// Detects if a body is human, based on Liam McInroy's Human detection algorithm.
         ///
-        /// Compares the proportions of the human body relative to the head. Because this app is
-        /// expected to be used in scenarios where the person's legs aren't visible, this algorithm
-        /// only checks if at least one ratio is correct, instead of two like in the original.
+        /// Compares the proportions of the human body relative to the head.
         /// https://stackoverflow.com/a/27883660
         /// </summary>
         /// <param name="body"></param>
@@ -42,12 +40,17 @@ namespace VirtualPainting
                 new Tuple<double, double>(torsoLengthRatio, HumanRatios.TorsoLength),
             };
 
+            int validHumanRatioCount = 0;
             foreach (var actualExpectedRatio in ratios)
             {
                 double diff = actualExpectedRatio.Item1 - actualExpectedRatio.Item2;
                 if (Math.Abs(diff) <= Settings.HumanRatioTolerance)
                 {
-                    return true;
+                    validHumanRatioCount++;
+                    if (validHumanRatioCount >= Settings.MinimumValidHumanRatioCount)
+                    {
+                        return true;
+                    }
                 }
             }
 

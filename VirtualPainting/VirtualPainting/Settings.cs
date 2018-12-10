@@ -40,6 +40,13 @@ namespace VirtualPainting
         /// </summary>
         public const double HumanRatioTolerance = 1.0f;
 
+        /// <summary>
+        /// Expected max difference between actual human ratio and expected human ratio.
+        /// Liam McInroy used 0.2f for his value. This is too small for this app because people
+        /// will stand close to the sensor, so only a person's upper body is fully visible.
+        /// </summary>
+        public const int MinimumValidHumanRatioCount = 1;
+
         public const string SavedImagesDirectoryPathEnvironmentVariableName = "VirtualPainting_SavedImagesDirectoryPath";
         public const string SavedBackgroundImagesDirectoryPathEnvironmentVariableName = "VirtualPainting_SavedBackgroundImagesDirectoryPath";
 
