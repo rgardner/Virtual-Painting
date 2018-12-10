@@ -6,8 +6,7 @@ namespace VirtualPainting.PaintingSession
 {
     interface IPaintingSession
     {
-        void Paint(SensorBody body, Brush brush, Canvas canvas, SensorBodyFrame bodyFrame = null);
+        void Paint(SensorBody body, Brush brush, Canvas canvas, SensorBodyFrame bodyFrame);
         void SavePainting(Image background, Canvas canvas, int width, int height, string directoryPath, string backgroundDirectoryPath);
-        void ClearCanvas(Canvas canvas);
     }
 }

@@ -560,7 +560,7 @@ namespace VirtualPainting
                         {
                             this.paintingSession.SavePainting(this.camera, this.canvas, this.width, this.height,
                                 GetSavedImagesDirectoryPath(), GetSavedBackgroundImagesDirectoryPath());
-                            this.paintingSession.ClearCanvas(this.canvas);
+                            ClearPaintCanvas();
                             this.paintingSession = null;
                         }
                     })
@@ -581,7 +581,7 @@ namespace VirtualPainting
                     })
                 .OnExit(t =>
                     {
-                        this.paintingSession.ClearCanvas(this.canvas);
+                        ClearPaintCanvas();
                         this.paintingSession = null;
                     })
                 .Permit(Trigger.TimerTick, State.EndPaintTransition)
@@ -783,10 +783,6 @@ namespace VirtualPainting
             }
         }
 
-        private void UpdatePersonDetectionStatesIfNeeded()
-        {
-        }
-
         private IPaintingSession CreatePaintingSession()
         {
             var paintAlgorithm = (IPaintAlgorithm)Activator.CreateInstance(Settings.PaintAlgorithm);
@@ -845,6 +841,15 @@ namespace VirtualPainting
 
             Canvas.SetLeft(stackPanel, rect.Left);
             Canvas.SetTop(stackPanel, rect.Top);
+        }
+
+        public void ClearPaintCanvas()
+        {
+            if (this.canvas.Children.Count > 1)
+            {
+                var elementCountToRemove = this.canvas.Children.Count - 1;
+                this.canvas.Children.RemoveRange(1, elementCountToRemove);
+            }
         }
     }
 }

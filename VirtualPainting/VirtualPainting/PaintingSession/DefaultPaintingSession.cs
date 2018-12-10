@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -74,12 +73,6 @@ namespace VirtualPainting.PaintingSession
             this.backgroundWorker.RunWorkerAsync(new List<object> { rtb, width, height, directoryPath, backgroundRtb, backgroundDirectoryPath });
         }
 
-        public void ClearCanvas(Canvas canvas)
-        {
-            var elementCountToRemove = canvas.Children.Count - 1;
-            canvas.Children.RemoveRange(1, elementCountToRemove);
-        }
-
         private static Bitmap RenderTargetBitmapToBitmap(RenderTargetBitmap rtb)
         {
             var bitmap = new Bitmap(rtb.PixelWidth, rtb.PixelHeight, System.Drawing.Imaging.PixelFormat.Format32bppPArgb);
@@ -93,7 +86,7 @@ namespace VirtualPainting.PaintingSession
             return bitmap;
         }
 
-        private static void SaveRenderTargetBitmapAsPng(RenderTargetBitmap rtb, string filePath)
+        public static void SaveRenderTargetBitmapAsPng(RenderTargetBitmap rtb, string filePath)
         {
             BitmapEncoder pngEncoder = new PngBitmapEncoder();
             pngEncoder.Frames.Add(BitmapFrame.Create(rtb));

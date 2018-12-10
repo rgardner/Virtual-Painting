@@ -31,19 +31,18 @@ namespace VirtualPainting.PaintingSession
                     var parentDirectoryPath = (string)arguments[2];
 
                     var directoryPath = Path.Combine(parentDirectoryPath, DateTime.Now.ToString("yyyy-MM-ddTHH-mm-ss"));
+                    Directory.CreateDirectory(directoryPath);
 
                     // Save the background with the painting
                     string backgroundWithPaintingFilePath = Path.Combine(directoryPath, "painting.png");
-                    Directory.CreateDirectory(directoryPath);
-                    SaveRenderTargetBitmapAsPng(backgroundWithPainting, backgroundWithPaintingFilePath);
+                    DefaultPaintingSession.SaveRenderTargetBitmapAsPng(backgroundWithPainting, backgroundWithPaintingFilePath);
 
                     // Save just the background
                     string backgroundFilePath = Path.Combine(directoryPath, "background.png");
-                    SaveRenderTargetBitmapAsPng(background, backgroundFilePath);
+                    DefaultPaintingSession.SaveRenderTargetBitmapAsPng(background, backgroundFilePath);
 
                     // Save the raw body frame data points
                     string csvSerializedSensorDataFilePath = Path.Combine(directoryPath, "sensor_data.csv");
-
                     using (var file = new StreamWriter(csvSerializedSensorDataFilePath))
                     {
                         file.WriteLine(SensorBody.GetCsvHeader());
@@ -78,26 +77,6 @@ namespace VirtualPainting.PaintingSession
             rtb2.Freeze(); // necessary for the backgroundWorker to access it
 
             this.backgroundWorker.RunWorkerAsync(new List<object> { rtb, rtb2, directoryPath});
-        }
-
-        public void ClearCanvas(Canvas canvas)
-        {
-            if (canvas.Children.Count > 1)
-            {
-                var elementCountToRemove = canvas.Children.Count - 1;
-                canvas.Children.RemoveRange(1, elementCountToRemove);
-            }
-        }
-
-        private static void SaveRenderTargetBitmapAsPng(RenderTargetBitmap rtb, string filePath)
-        {
-            BitmapEncoder pngEncoder = new PngBitmapEncoder();
-            pngEncoder.Frames.Add(BitmapFrame.Create(rtb));
-            using (var ms = new MemoryStream())
-            {
-                pngEncoder.Save(ms);
-                File.WriteAllBytes(filePath, ms.ToArray());
-            }
         }
     }
 }
