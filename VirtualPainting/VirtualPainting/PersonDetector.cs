@@ -7,7 +7,15 @@ namespace VirtualPainting
     {
         public static bool IsPersonPresent(Body body, Rect frame, double maxExpectedDistance = Settings.BodyDistanceFromCameraThresholdInMeters)
         {
-            return body.IsHuman() && IsInFrame(body, frame) && IsWithinValidDistance(body, maxExpectedDistance);
+            if (Settings.UseHumanRatioHeuristic)
+            {
+                if (!body.IsHuman())
+                {
+                    return false;
+                }
+            }
+
+            return IsInFrame(body, frame) && IsWithinValidDistance(body, maxExpectedDistance);
         }
 
         /// <summary>

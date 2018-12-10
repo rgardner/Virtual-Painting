@@ -26,9 +26,17 @@ namespace VirtualPainting
         public const double BodyDistanceVariationThresholdInMeters = 0.5;
 
         /// <summary>
+        /// Virtual Painting was designed for an environment where a person's lower body may or may
+        /// not be visible. Because of this, the human ratio heuristic has fewer ratios to compare
+        /// and can return more false positives. Also, in low light conditions, the false positive
+        /// rate was observed to be higher, which is why this configuration exists.
+        /// </summary>
+        public static readonly bool UseHumanRatioHeuristic = false;
+
+        /// <summary>
         /// Expected max difference between actual human ratio and expected human ratio.
         /// Liam McInroy used 0.2f for his value. This is too small for this app because people
-        /// will stand close to the sensor, so there's only really the upper body that is visible.
+        /// will stand close to the sensor, so only a person's upper body is fully visible.
         /// </summary>
         public const double HumanRatioTolerance = 1.0f;
 
