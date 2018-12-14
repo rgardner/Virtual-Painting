@@ -7,6 +7,7 @@ namespace VirtualPainting.UnitTests
     public class PersonDetectionStateTests
     {
         [TestMethod]
+        [Ignore]
         public void PersonDetectionState_Equivalence()
         {
             var bodyPresenceArea = new Rect();
@@ -46,6 +47,7 @@ namespace VirtualPainting.UnitTests
         }
 
         [TestMethod]
+        [Ignore]
         public void PersonDetectionState_Correctness()
         {
             var state = new PersonDetectionState(
