@@ -79,7 +79,7 @@ namespace PhotoBooth
 
             for (int i = 0; i < this.bodies.Length; i++)
             {
-                bool isBodyPresent = this.bodies[i] != null;
+                bool isBodyPresent = this.bodies[i] != null && IsBodyPresent(this.bodies[i]);
                 if (!this.bodyPresences[i] && isBodyPresent)
                 {
                     PersonEnters?.Invoke(this, null);
@@ -91,6 +91,11 @@ namespace PhotoBooth
 
                 this.bodyPresences[i] = isBodyPresent;
             }
+        }
+
+        private static bool IsBodyPresent(Body body)
+        {
+            return body.DistanceFromSensor() < Properties.Settings.Default.MaxBodySensorDistance;
         }
     }
 }

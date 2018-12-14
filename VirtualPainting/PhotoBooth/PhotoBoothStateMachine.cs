@@ -13,8 +13,6 @@ namespace PhotoBooth
             ConfirmingPresence,
             Countdown,
             TakeSnapshot,
-            ShowSnapshot,
-            ShowEndMessage,
         }
 
         private enum Trigger
@@ -40,6 +38,7 @@ namespace PhotoBooth
         public event EventHandler PhotoBoothStopped;
         public event EventHandler PhotoBoothCountdownStarted;
         public event EventHandler PhotoBoothCountdownStopped;
+        public event EventHandler PhotoBoothSnapshotTaken;
 
         public void EnterFirstPerson()
         {
@@ -98,16 +97,11 @@ namespace PhotoBooth
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Taking picture...");
+                        PhotoBoothSnapshotTaken?.Invoke(this, null);
+                        this.timer.Interval = TimeSpan.FromSeconds(10);
+                        this.timer.Start();
                     })
-                .Permit(Trigger.TimerTick, State.ShowSnapshot)
-                .Permit(Trigger.LeaveLastPerson, State.WaitingForPresence);
-
-            this.stateMachine.Configure(State.ShowSnapshot)
-                .OnEntry(t =>
-                    {
-                        Debug.WriteLine("Showing snapshot...");
-                    })
-                .Permit(Trigger.TimerTick, State.ConfirmingPresence)
+                .Permit(Trigger.TimerTick, State.Countdown)
                 .Permit(Trigger.LeaveLastPerson, State.WaitingForPresence);
         }
     }

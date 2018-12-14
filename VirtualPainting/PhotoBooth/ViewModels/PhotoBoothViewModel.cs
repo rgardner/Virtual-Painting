@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Drawing;
-using System.Globalization;
+using System.IO;
 using System.Linq;
-using System.Resources;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Kinect;
 
@@ -17,6 +14,7 @@ namespace PhotoBooth.ViewModels
         private readonly PhotoBoothStateMachine stateMachine = new PhotoBoothStateMachine();
         private int peoplePresentCount = 0;
         private CountdownTimer countdownTimer = null;
+        private readonly Random random = new Random();
 
         public PhotoBoothViewModel()
         {
@@ -24,16 +22,25 @@ namespace PhotoBooth.ViewModels
             this.CameraImageSource = this.cameraSensor.Camera;
             this.cameraSensor.PersonEnters += (s, e) =>
                 {
-                    HandlePersonEnters();
+                    this.peoplePresentCount++;
+                    if (this.peoplePresentCount == 1)
+                    {
+                        this.stateMachine.EnterFirstPerson();
+                    }
                 };
 
             this.cameraSensor.PersonLeaves += (s, e) =>
                 {
-                    HandlePersonLeaves();
+                    this.peoplePresentCount--;
+                    if (this.peoplePresentCount == 0)
+                    {
+                        this.stateMachine.LeaveLastPerson();
+                    }
                 };
 
             this.stateMachine.PhotoBoothStopped += (s, e) =>
                 {
+                    this.OverlayImageSource = null;
                 };
 
             this.stateMachine.PhotoBoothCountdownStarted += (s, e) =>
@@ -46,51 +53,41 @@ namespace PhotoBooth.ViewModels
                 {
                     StopCountdownTimer();
                 };
+
+            this.stateMachine.PhotoBoothSnapshotTaken += (s, e) =>
+                {
+                    // TODO
+                    // Flash screen
+                    // Save picture
+                    // Show message saying they will be sent out after the party
+                };
         }
 
-        public WriteableBitmap CameraImageSource { get; }
-        public Image OverlayImageSource { get; private set; }
+        public ImageSource CameraImageSource { get; }
+        public ImageSource OverlayImageSource { get; private set; }
         public string CountdownValue { get; private set; }
 
 #pragma warning disable CS0067 // PropertyChanged is used by Fody-generated property setters
         public event PropertyChangedEventHandler PropertyChanged;
 #pragma warning restore
 
-        private void HandlePersonEnters()
-        {
-            this.peoplePresentCount++;
-            if (this.peoplePresentCount == 1)
-            {
-                this.stateMachine.EnterFirstPerson();
-            }
-        }
-
-        private void HandlePersonLeaves()
-        {
-            this.peoplePresentCount--;
-            if (this.peoplePresentCount == 0)
-            {
-                this.stateMachine.LeaveLastPerson();
-            }
-        }
-
         private void SetOverlayImage()
         {
-            ResourceSet resources = Properties.Resources.ResourceManager.GetResourceSet(CultureInfo.CurrentUICulture, true, true);
-            var overlayNames = new List<string>();
-            foreach (DictionaryEntry entry in resources)
-            {
-                overlayNames.Add((string)entry.Key);
-            }
+            var overlayImageFilePaths = Directory.EnumerateFiles("Images", "*.png").ToArray();
+            var chosenOverlayImageFilePath = overlayImageFilePaths[this.random.Next(overlayImageFilePaths.Length)];
 
-            var random = new Random();
-            var chosenOverlayName = overlayNames[random.Next(overlayNames.Count)];
-            this.OverlayImageSource = (Bitmap)Properties.Resources.ResourceManager.GetObject(chosenOverlayName);
+            var image = new BitmapImage();
+            image.BeginInit();
+            image.UriSource = new Uri(chosenOverlayImageFilePath, UriKind.Relative);
+            image.CacheOption = BitmapCacheOption.OnLoad;
+            image.EndInit();
+
+            this.OverlayImageSource = image;
         }
 
         private void StartCountdownTimer()
         {
-            const int initialCountdownValue = 3;
+            const int initialCountdownValue = 7;
             this.countdownTimer = new CountdownTimer(initialCountdownValue);
             this.countdownTimer.PropertyChanged += (s1, e1) =>
                 {
@@ -106,8 +103,9 @@ namespace PhotoBooth.ViewModels
                         }
                     }
                 };
-            this.countdownTimer.Start();
+
             this.CountdownValue = initialCountdownValue.ToString();
+            this.countdownTimer.Start();
         }
 
         private void StopCountdownTimer()
