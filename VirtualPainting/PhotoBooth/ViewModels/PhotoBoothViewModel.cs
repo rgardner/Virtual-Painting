@@ -34,12 +34,14 @@ namespace PhotoBooth.ViewModels
                     this.peoplePresentCount--;
                     if (this.peoplePresentCount == 0)
                     {
+                        EnsureStoppedCountdownTimer();
                         this.stateMachine.LeaveLastPerson();
                     }
                 };
 
             this.stateMachine.PhotoBoothStopped += (s, e) =>
                 {
+                    this.FullScreenMessage = string.Empty;
                     this.FlashingBackground = false;
                     this.OverlayImageSource = null;
                 };
@@ -52,15 +54,23 @@ namespace PhotoBooth.ViewModels
 
             this.stateMachine.PhotoBoothCountdownStopped += (s, e) =>
                 {
-                    StopCountdownTimer();
+                    EnsureStoppedCountdownTimer();
                 };
 
             this.stateMachine.PhotoBoothSnapshotTaken += (s, e) =>
                 {
-                    // TODO
                     this.FlashingBackground = true;
                     ImageSaver.SaveImage(this.CameraImageSource, this.OverlayImageSource);
-                    // Show message saying they will be sent out after the party
+                };
+
+            this.stateMachine.PhotoBoothEnteredFinished += (s, e) =>
+                {
+                    this.FullScreenMessage = Properties.Resources.FinishedMessage;
+                };
+
+            this.stateMachine.PhotoBoothLeftFinished += (s, e) =>
+                {
+                    this.FullScreenMessage = string.Empty;
                 };
         }
 
@@ -68,6 +78,8 @@ namespace PhotoBooth.ViewModels
         public BitmapSource OverlayImageSource { get; private set; }
         public string CountdownValue { get; private set; }
         public bool FlashingBackground { get; private set; } = false;
+        public bool ShouldShowFullScreenMessage => !string.IsNullOrEmpty(this.FullScreenMessage);
+        public string FullScreenMessage { get; private set; } = string.Empty;
 
 #pragma warning disable CS0067 // PropertyChanged is used by Fody-generated property setters
         public event PropertyChangedEventHandler PropertyChanged;
@@ -110,11 +122,14 @@ namespace PhotoBooth.ViewModels
             this.countdownTimer.Start();
         }
 
-        private void StopCountdownTimer()
+        private void EnsureStoppedCountdownTimer()
         {
             this.CountdownValue = string.Empty;
-            this.countdownTimer.Stop();
-            this.countdownTimer = null;
+            if (this.countdownTimer != null)
+            {
+                this.countdownTimer.Stop();
+                this.countdownTimer = null;
+            }
         }
     }
 }

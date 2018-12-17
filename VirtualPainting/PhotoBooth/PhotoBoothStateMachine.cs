@@ -13,6 +13,7 @@ namespace PhotoBooth
             ConfirmingPresence,
             Countdown,
             TakeSnapshot,
+            Finished,
         }
 
         private enum Trigger
@@ -39,6 +40,8 @@ namespace PhotoBooth
         public event EventHandler PhotoBoothCountdownStarted;
         public event EventHandler PhotoBoothCountdownStopped;
         public event EventHandler PhotoBoothSnapshotTaken;
+        public event EventHandler PhotoBoothEnteredFinished;
+        public event EventHandler PhotoBoothLeftFinished;
 
         public void EnterFirstPerson()
         {
@@ -98,8 +101,24 @@ namespace PhotoBooth
                     {
                         Debug.WriteLine("Taking picture...");
                         PhotoBoothSnapshotTaken?.Invoke(this, null);
-                        this.timer.Interval = TimeSpan.FromSeconds(10);
+                        this.timer.Interval = TimeSpan.FromSeconds(5);
                         this.timer.Start();
+                    })
+                .Permit(Trigger.TimerTick, State.Finished)
+                .Permit(Trigger.LeaveLastPerson, State.WaitingForPresence);
+
+            this.stateMachine.Configure(State.Finished)
+                .OnEntry(t =>
+                    {
+                        Debug.WriteLine("Entered Finished...");
+                        PhotoBoothEnteredFinished?.Invoke(this, null);
+                        this.timer.Interval = TimeSpan.FromSeconds(5);
+                        this.timer.Start();
+                    })
+                .OnExit(t =>
+                    {
+                        Debug.WriteLine("Leaving Finished...");
+                        PhotoBoothLeftFinished?.Invoke(this, null);
                     })
                 .Permit(Trigger.TimerTick, State.Countdown)
                 .Permit(Trigger.LeaveLastPerson, State.WaitingForPresence);

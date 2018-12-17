@@ -59,5 +59,14 @@ namespace PhotoBooth.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The photo will be uploaded to the evite website after the party..
+        /// </summary>
+        internal static string FinishedMessage {
+            get {
+                return ResourceManager.GetString("FinishedMessage", resourceCulture);
+            }
+        }
     }
 }
