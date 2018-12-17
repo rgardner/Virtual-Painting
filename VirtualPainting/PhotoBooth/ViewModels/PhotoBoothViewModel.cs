@@ -40,6 +40,7 @@ namespace PhotoBooth.ViewModels
 
             this.stateMachine.PhotoBoothStopped += (s, e) =>
                 {
+                    this.FlashingBackground = false;
                     this.OverlayImageSource = null;
                 };
 
@@ -57,7 +58,7 @@ namespace PhotoBooth.ViewModels
             this.stateMachine.PhotoBoothSnapshotTaken += (s, e) =>
                 {
                     // TODO
-                    // Flash screen
+                    this.FlashingBackground = true;
                     // Save picture
                     // Show message saying they will be sent out after the party
                 };
@@ -66,6 +67,7 @@ namespace PhotoBooth.ViewModels
         public ImageSource CameraImageSource { get; }
         public ImageSource OverlayImageSource { get; private set; }
         public string CountdownValue { get; private set; }
+        public bool FlashingBackground { get; private set; } = false;
 
 #pragma warning disable CS0067 // PropertyChanged is used by Fody-generated property setters
         public event PropertyChangedEventHandler PropertyChanged;
