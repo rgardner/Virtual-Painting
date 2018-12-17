@@ -60,6 +60,12 @@ namespace PhotoBooth
 
         public WriteableBitmap Camera { get; }
 
+        public bool IsCameraPaused
+        {
+            get => this.colorReader.IsPaused;
+            set => this.colorReader.IsPaused = value;
+        }
+
         public event EventHandler PersonEnters;
         public event EventHandler PersonLeaves;
 

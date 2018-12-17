@@ -40,6 +40,7 @@ namespace PhotoBooth.ViewModels
             this.stateMachine.EnteredWaitingForPresence += (s, e) =>
                 {
                     this.OverlayImageSource = null;
+                    this.cameraSensor.IsCameraPaused = false;
                 };
 
             this.stateMachine.EnteredCountdown += (s, e) =>
@@ -55,6 +56,7 @@ namespace PhotoBooth.ViewModels
 
             this.stateMachine.EnteredTakeSnapshot += (s, e) =>
                 {
+                    this.cameraSensor.IsCameraPaused = true;
                     this.FlashingBackground = true;
                     ImageSaver.SaveImage(this.CameraImageSource, this.OverlayImageSource);
                 };
@@ -72,6 +74,7 @@ namespace PhotoBooth.ViewModels
             this.stateMachine.LeftFinished += (s, e) =>
                 {
                     this.FullScreenMessage = string.Empty;
+                    this.cameraSensor.IsCameraPaused = false;
                 };
         }
 
@@ -102,7 +105,7 @@ namespace PhotoBooth.ViewModels
 
         private void StartCountdownTimer()
         {
-            const int initialCountdownValue = 7;
+            const int initialCountdownValue = 5;
             this.countdownTimer = new CountdownTimer(initialCountdownValue);
             this.countdownTimer.PropertyChanged += (s1, e1) =>
                 {
