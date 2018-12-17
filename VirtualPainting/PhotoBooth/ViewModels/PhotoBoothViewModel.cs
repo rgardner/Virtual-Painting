@@ -59,13 +59,13 @@ namespace PhotoBooth.ViewModels
                 {
                     // TODO
                     this.FlashingBackground = true;
-                    // Save picture
+                    ImageSaver.SaveImage(this.CameraImageSource, this.OverlayImageSource);
                     // Show message saying they will be sent out after the party
                 };
         }
 
-        public ImageSource CameraImageSource { get; }
-        public ImageSource OverlayImageSource { get; private set; }
+        public BitmapSource CameraImageSource { get; }
+        public BitmapSource OverlayImageSource { get; private set; }
         public string CountdownValue { get; private set; }
         public bool FlashingBackground { get; private set; } = false;
 

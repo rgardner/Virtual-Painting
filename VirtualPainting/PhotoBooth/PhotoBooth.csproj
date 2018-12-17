@@ -98,6 +98,7 @@
     <Compile Include="BodyExtensions.cs" />
     <Compile Include="CameraSensor.cs" />
     <Compile Include="CountdownTimer.cs" />
+    <Compile Include="ImageSaver.cs" />
     <Compile Include="PhotoBoothStateMachine.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
