@@ -36,12 +36,13 @@ namespace PhotoBooth
                 };
         }
 
-        public event EventHandler PhotoBoothStopped;
-        public event EventHandler PhotoBoothCountdownStarted;
-        public event EventHandler PhotoBoothCountdownStopped;
-        public event EventHandler PhotoBoothSnapshotTaken;
-        public event EventHandler PhotoBoothEnteredFinished;
-        public event EventHandler PhotoBoothLeftFinished;
+        public event EventHandler EnteredWaitingForPresence;
+        public event EventHandler EnteredCountdown;
+        public event EventHandler LeftCountdown;
+        public event EventHandler EnteredTakeSnapshot;
+        public event EventHandler LeftTakeSnapshot;
+        public event EventHandler EnteredFinished;
+        public event EventHandler LeftFinished;
 
         public void EnterFirstPerson()
         {
@@ -69,7 +70,7 @@ namespace PhotoBooth
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Waiting for presence...");
-                        PhotoBoothStopped?.Invoke(this, null);
+                        EnteredWaitingForPresence?.Invoke(this, null);
                     })
                 .Permit(Trigger.EnterFirstPerson, State.ConfirmingPresence);
 
@@ -87,11 +88,11 @@ namespace PhotoBooth
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Starting countdown...");
-                        PhotoBoothCountdownStarted?.Invoke(this, null);
+                        EnteredCountdown?.Invoke(this, null);
                     })
                 .OnExit(t =>
                     {
-                        PhotoBoothCountdownStopped?.Invoke(this, null);
+                        LeftCountdown?.Invoke(this, null);
                     })
                 .Permit(Trigger.CountdownFinished, State.TakeSnapshot)
                 .Permit(Trigger.LeaveLastPerson, State.WaitingForPresence);
@@ -100,9 +101,14 @@ namespace PhotoBooth
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Taking picture...");
-                        PhotoBoothSnapshotTaken?.Invoke(this, null);
+                        EnteredTakeSnapshot?.Invoke(this, null);
                         this.timer.Interval = TimeSpan.FromSeconds(5);
                         this.timer.Start();
+                    })
+                .OnExit(t =>
+                    {
+                        Debug.WriteLine("Leaving TakeSnapshot...");
+                        LeftTakeSnapshot?.Invoke(this, null);
                     })
                 .Permit(Trigger.TimerTick, State.Finished)
                 .Permit(Trigger.LeaveLastPerson, State.WaitingForPresence);
@@ -111,14 +117,14 @@ namespace PhotoBooth
                 .OnEntry(t =>
                     {
                         Debug.WriteLine("Entered Finished...");
-                        PhotoBoothEnteredFinished?.Invoke(this, null);
+                        EnteredFinished?.Invoke(this, null);
                         this.timer.Interval = TimeSpan.FromSeconds(5);
                         this.timer.Start();
                     })
                 .OnExit(t =>
                     {
                         Debug.WriteLine("Leaving Finished...");
-                        PhotoBoothLeftFinished?.Invoke(this, null);
+                        LeftFinished?.Invoke(this, null);
                     })
                 .Permit(Trigger.TimerTick, State.Countdown)
                 .Permit(Trigger.LeaveLastPerson, State.WaitingForPresence);

@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Kinect;
 
@@ -34,41 +33,43 @@ namespace PhotoBooth.ViewModels
                     this.peoplePresentCount--;
                     if (this.peoplePresentCount == 0)
                     {
-                        EnsureStoppedCountdownTimer();
                         this.stateMachine.LeaveLastPerson();
                     }
                 };
 
-            this.stateMachine.PhotoBoothStopped += (s, e) =>
+            this.stateMachine.EnteredWaitingForPresence += (s, e) =>
                 {
-                    this.FullScreenMessage = string.Empty;
-                    this.FlashingBackground = false;
                     this.OverlayImageSource = null;
                 };
 
-            this.stateMachine.PhotoBoothCountdownStarted += (s, e) =>
+            this.stateMachine.EnteredCountdown += (s, e) =>
                 {
                     SetOverlayImage();
                     StartCountdownTimer();
                 };
 
-            this.stateMachine.PhotoBoothCountdownStopped += (s, e) =>
+            this.stateMachine.LeftCountdown += (s, e) =>
                 {
                     EnsureStoppedCountdownTimer();
                 };
 
-            this.stateMachine.PhotoBoothSnapshotTaken += (s, e) =>
+            this.stateMachine.EnteredTakeSnapshot += (s, e) =>
                 {
                     this.FlashingBackground = true;
                     ImageSaver.SaveImage(this.CameraImageSource, this.OverlayImageSource);
                 };
 
-            this.stateMachine.PhotoBoothEnteredFinished += (s, e) =>
+            this.stateMachine.LeftTakeSnapshot += (s, e) =>
+                {
+                    this.FlashingBackground = false;
+                };
+
+            this.stateMachine.EnteredFinished += (s, e) =>
                 {
                     this.FullScreenMessage = Properties.Resources.FinishedMessage;
                 };
 
-            this.stateMachine.PhotoBoothLeftFinished += (s, e) =>
+            this.stateMachine.LeftFinished += (s, e) =>
                 {
                     this.FullScreenMessage = string.Empty;
                 };
